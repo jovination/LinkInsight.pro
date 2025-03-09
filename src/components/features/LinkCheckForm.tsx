@@ -50,11 +50,11 @@ export const LinkCheckForm = () => {
   return (
     <div className="w-full">
       {!showResult ? (
-        <Card className="shadow-sm border border-border/60 bg-background rounded-xl overflow-hidden">
+        <Card className="shadow-sm border border-primary/10 bg-background rounded-2xl overflow-hidden">
           <CardContent className="p-0">
             <div className="px-3 pt-3">
               <Tabs defaultValue="single" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-3">
+                <TabsList className="grid w-full grid-cols-2 mb-3 rounded-xl">
                   <TabsTrigger value="single">Single URL</TabsTrigger>
                   <TabsTrigger value="bulk">Bulk Check</TabsTrigger>
                 </TabsList>
@@ -65,14 +65,14 @@ export const LinkCheckForm = () => {
                       <Input
                         value={url}
                         onChange={(e) => setUrl(e.target.value)}
-                        placeholder="Shorten any link..."
-                        className="pr-12 border-border/60"
+                        placeholder="Check any link..."
+                        className="pr-12 border-primary/10 rounded-xl"
                       />
                       <Button 
                         type="submit"
                         size="icon"
                         disabled={isChecking || !url}
-                        className="absolute right-1 bg-primary hover:bg-primary-600 w-8 h-8 flex items-center justify-center rounded-md"
+                        className="absolute right-1 bg-primary hover:bg-primary-600 w-8 h-8 flex items-center justify-center rounded-lg"
                       >
                         <ArrowRight className="h-4 w-4" />
                       </Button>
@@ -89,7 +89,7 @@ export const LinkCheckForm = () => {
                       value={bulkUrls}
                       onChange={(e) => setBulkUrls(e.target.value)}
                       placeholder="https://example.com/page1&#10;https://example.com/page2&#10;https://example.com/page3"
-                      className="min-h-[120px] border-border/60 resize-none"
+                      className="min-h-[120px] border-primary/10 resize-none rounded-xl"
                     />
                     <div className="flex justify-between items-center pb-3">
                       <div className="text-xs text-muted-foreground">
@@ -99,7 +99,7 @@ export const LinkCheckForm = () => {
                         type="submit"
                         size="sm"
                         disabled={isChecking || !bulkUrls}
-                        className="bg-primary hover:bg-primary-600"
+                        className="bg-primary hover:bg-primary-600 rounded-xl"
                       >
                         Check Now
                       </Button>
@@ -110,7 +110,7 @@ export const LinkCheckForm = () => {
             </div>
             
             {url && (
-              <div className="mt-3 flex items-center justify-between px-4 py-3 border-t border-border/60 bg-muted/40">
+              <div className="mt-3 flex items-center justify-between px-4 py-3 border-t border-primary/10 bg-primary/5">
                 <div className="flex items-center text-sm">
                   <span className="text-muted-foreground">Try it out</span>
                 </div>
@@ -119,20 +119,20 @@ export const LinkCheckForm = () => {
           </CardContent>
         </Card>
       ) : (
-        <Card className="shadow-sm border border-border/60 bg-background rounded-xl overflow-hidden">
+        <Card className="shadow-sm border border-primary/10 bg-background rounded-2xl overflow-hidden">
           <CardContent className="p-0">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border/60">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-primary/10">
               <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
-                  <span className="text-sm font-medium">LC</span>
+                <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                  <span className="text-sm font-medium">LL</span>
                 </div>
-                <div className="text-sm font-medium">link.checker/report</div>
+                <div className="text-sm font-medium">linklytics.ai/report</div>
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="icon" className="h-8 w-8">
+                <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg border-primary/10">
                   <Copy className="h-4 w-4" />
                 </Button>
-                <Button variant="outline" size="icon" className="h-8 w-8">
+                <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg border-primary/10">
                   <ExternalLink className="h-4 w-4" />
                 </Button>
               </div>
@@ -143,7 +143,7 @@ export const LinkCheckForm = () => {
                 <div className="text-xs text-primary font-medium">62.6K clicks</div>
               </div>
               <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-3 p-3 rounded-md border border-border/60">
+                <div className="flex items-center gap-3 p-3 rounded-xl border border-primary/10 hover:border-primary/20 transition-all">
                   <div className="h-8 w-8 rounded-full bg-green-100 text-green-700 flex items-center justify-center">
                     200
                   </div>
@@ -154,7 +154,7 @@ export const LinkCheckForm = () => {
                 </div>
               </div>
             </div>
-            <div className="flex justify-end px-4 py-3 border-t border-border/60 bg-muted/40">
+            <div className="flex justify-end px-4 py-3 border-t border-primary/10 bg-primary/5">
               <Button 
                 onClick={() => {
                   setShowResult(false);
@@ -162,6 +162,7 @@ export const LinkCheckForm = () => {
                 }}
                 size="sm"
                 variant="outline"
+                className="rounded-xl border-primary/10"
               >
                 Check Another
               </Button>

@@ -84,7 +84,7 @@
 
 @layer components {
   .glass-card {
-    @apply bg-white/80 dark:bg-black/60 backdrop-blur-lg border border-white/20 dark:border-gray-800/50 shadow-subtle;
+    @apply bg-white/80 dark:bg-black/60 backdrop-blur-lg border border-white/20 dark:border-gray-800/50 shadow-subtle rounded-xl;
   }
   
   .btn-gradient {
@@ -112,15 +112,23 @@
   }
 
   .dashboard-card {
-    @apply rounded-xl border bg-card p-5 shadow-sm transition-all hover:shadow-md;
+    @apply rounded-2xl border bg-card p-5 shadow-sm transition-all hover:shadow-md;
   }
   
   .stats-card {
-    @apply flex flex-col gap-1 rounded-xl border bg-card p-4 shadow-sm;
+    @apply flex flex-col gap-1 rounded-2xl border bg-card p-4 shadow-sm hover:shadow-md transition-all duration-200;
   }
 
   .feature-card {
-    @apply rounded-xl border bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950 p-6 shadow-sm hover:shadow-md transition-all duration-200;
+    @apply rounded-2xl border bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950 p-6 shadow-sm hover:shadow-md transition-all duration-200;
+  }
+  
+  .linklytics-card {
+    @apply rounded-2xl border border-primary/10 bg-white dark:bg-gray-900 p-6 shadow-sm hover:shadow-md transition-all duration-200;
+  }
+  
+  .linklytics-button {
+    @apply bg-primary hover:bg-primary-600 text-white font-medium rounded-xl transition-all duration-200;
   }
 }
 
