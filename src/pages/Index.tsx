@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
@@ -16,7 +15,8 @@ import {
   FileText,
   Mail,
   Code,
-  Zap 
+  Zap,
+  BellRing
 } from 'lucide-react';
 import {
   Accordion,
@@ -116,7 +116,7 @@ const Index = () => {
             <Card className="glass-card animate-fade-in" style={{ animationDelay: '200ms' }}>
               <CardHeader>
                 <div className="h-10 w-10 rounded-lg bg-warning/10 flex items-center justify-center text-warning mb-2">
-                  <Bell className="h-5 w-5" />
+                  <BellRing className="h-5 w-5" />
                 </div>
                 <CardTitle>Alerts & Monitoring</CardTitle>
                 <CardDescription>Get notified when links break or change</CardDescription>
@@ -675,14 +675,14 @@ const Index = () => {
             <AccordionItem value="item-1">
               <AccordionTrigger>What is LinkChecker?</AccordionTrigger>
               <AccordionContent>
-                LinkChecker is a comprehensive link analysis and monitoring tool that helps you identify broken links, analyze redirects, check status codes, and monitor website health. It's perfect for developers, marketers, and SEO professionals who need to ensure their online presence is error-free.
+                LinkChecker is a comprehensive link analysis and monitoring tool that helps you identify broken links, analyze redirects, check status codes, and monitor website health. It&apos;s perfect for developers, marketers, and SEO professionals who need to ensure their online presence is error-free.
               </AccordionContent>
             </AccordionItem>
             
             <AccordionItem value="item-2">
               <AccordionTrigger>How does the free plan work?</AccordionTrigger>
               <AccordionContent>
-                Our free plan allows you to check up to 100 links per month, with basic link analysis features, 5 scheduled checks, and email reports. It's perfect for individuals and small projects. No credit card is required to sign up.
+                Our free plan allows you to check up to 100 links per month, with basic link analysis features, 5 scheduled checks, and email reports. It&apos;s perfect for individuals and small projects. No credit card is required to sign up.
               </AccordionContent>
             </AccordionItem>
             
