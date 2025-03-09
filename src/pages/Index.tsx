@@ -321,7 +321,7 @@ const Index = () => {
                     <div className="flex items-center justify-between py-2 px-3 bg-secondary rounded-lg">
                       <div className="flex items-center gap-2">
                         <div className="h-3 w-3 rounded-full bg-muted-foreground"></div>
-                        <span className="text-sm font-medium">Slow Links (>2s)</span>
+                        <span className="text-sm font-medium">Slow Links (&gt;2s)</span>
                       </div>
                       <span className="font-medium">35</span>
                     </div>
@@ -404,7 +404,7 @@ const Index = () => {
                   </div>
                   <div>
                     <h4 className="font-semibold">Internal Link Structure</h4>
-                    <p className="text-muted-foreground">Analyze your site's link architecture and identify improvements</p>
+                    <p className="text-muted-foreground">Analyze your site&apos;s link architecture and identify improvements</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
@@ -428,7 +428,7 @@ const Index = () => {
           <div className="text-center mb-16">
             <h2 className="heading-lg mb-4">Simple, Transparent Pricing</h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Choose the plan that's right for you. All plans include a 14-day free trial.
+              Choose the plan that&apos;s right for you. All plans include a 14-day free trial.
             </p>
           </div>
           
@@ -703,52 +703,4 @@ const Index = () => {
             <AccordionItem value="item-5">
               <AccordionTrigger>Do you offer enterprise solutions?</AccordionTrigger>
               <AccordionContent>
-                Yes, we offer custom enterprise plans for larger organizations with specific needs. Enterprise plans include dedicated support, custom integrations, SLA guarantees, and can be tailored to your exact requirements. Contact our sales team for more information.
-              </AccordionContent>
-            </AccordionItem>
-            
-            <AccordionItem value="item-6">
-              <AccordionTrigger>Can I export my reports?</AccordionTrigger>
-              <AccordionContent>
-                Yes, paid plans allow you to export reports in various formats including CSV, PDF, and JSON. You can also schedule automated reports to be generated and emailed to you or your team on a regular basis.
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </div>
-      </section>
-      
-      {/* CTA Section */}
-      <section className="py-20 px-4">
-        <div className="container mx-auto max-w-4xl">
-          <div className="bg-primary rounded-3xl overflow-hidden">
-            <div className="bg-gradient-to-r from-primary-600 to-primary-700 p-8 md:p-12 text-white">
-              <div className="text-center">
-                <h2 className="text-3xl md:text-4xl font-bold mb-4">Start checking your links today</h2>
-                <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
-                  Join thousands of professionals who trust LinkChecker to monitor and optimize their online presence.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Link to="/signup">
-                    <Button size="lg" variant="secondary" className="w-full sm:w-auto">
-                      Start Free Trial
-                    </Button>
-                  </Link>
-                  <Link to="/demo">
-                    <Button size="lg" variant="outline" className="w-full sm:w-auto border-white/20 bg-white/10 hover:bg-white/20 text-white">
-                      Request Demo
-                    </Button>
-                  </Link>
-                </div>
-                <p className="text-sm text-white/60 mt-4">
-                  No credit card required. 14-day free trial on all plans.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </MainLayout>
-  );
-};
-
-export default Index;
+                Yes, we offer custom enterprise plans for larger organizations with specific needs. Enterprise plans include dedicated support, custom integrations, SLA guarantees, and can be tailored to your exact
