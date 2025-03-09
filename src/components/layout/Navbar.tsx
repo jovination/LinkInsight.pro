@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, Menu, X, Moon, Sun } from 'lucide-react';
+import { ChevronDown, Menu, Moon, Sun } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { 
   DropdownMenu, 
@@ -25,62 +25,41 @@ export const Navbar = () => {
       <div className="container flex items-center justify-between">
         <div className="flex items-center gap-8">
           <Link to="/" className="flex items-center gap-2">
-            <span className="font-bold text-xl">LinkChecker</span>
+            <span className="font-bold text-xl">Linklytics</span>
           </Link>
           
           <nav className="hidden md:flex items-center gap-6">
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
-                Product
+                Features
                 <ChevronDown className="h-4 w-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuItem>Link Analysis</DropdownMenuItem>
                 <DropdownMenuItem>SEO Tools</DropdownMenuItem>
-                <DropdownMenuItem>Reports</DropdownMenuItem>
+                <DropdownMenuItem>Analytics Dashboard</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
-                Resources
-                <ChevronDown className="h-4 w-4" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem>Documentation</DropdownMenuItem>
-                <DropdownMenuItem>Blog</DropdownMenuItem>
-                <DropdownMenuItem>Support</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
-                Company
-                <ChevronDown className="h-4 w-4" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem>About Us</DropdownMenuItem>
-                <DropdownMenuItem>Careers</DropdownMenuItem>
-                <DropdownMenuItem>Contact</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            
-            <Link to="/enterprise" className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
-              Enterprise
-            </Link>
             
             <Link to="/pricing" className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
               Pricing
+            </Link>
+            
+            <Link to="/resources" className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
+              Resources
             </Link>
           </nav>
         </div>
         
         <div className="hidden md:flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={toggleTheme} className="mr-2">
+            {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+          </Button>
           <Link to="/login">
             <Button variant="ghost" size="sm">Log in</Button>
           </Link>
           <Link to="/signup">
-            <Button size="sm" className="bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90">
+            <Button size="sm" className="bg-primary hover:bg-primary/90 text-white">
               Sign up
             </Button>
           </Link>
@@ -96,15 +75,13 @@ export const Navbar = () => {
           <SheetContent side="right" className="flex flex-col">
             <div className="flex items-center justify-between border-b pb-4">
               <Link to="/" className="flex items-center gap-2">
-                <span className="font-bold text-xl">LinkChecker</span>
+                <span className="font-bold text-xl">Linklytics</span>
               </Link>
             </div>
             <nav className="flex flex-col gap-4 mt-8">
-              <Link to="/product" className="text-sm font-medium py-2 hover:text-primary transition-colors">Product</Link>
-              <Link to="/resources" className="text-sm font-medium py-2 hover:text-primary transition-colors">Resources</Link>
-              <Link to="/company" className="text-sm font-medium py-2 hover:text-primary transition-colors">Company</Link>
-              <Link to="/enterprise" className="text-sm font-medium py-2 hover:text-primary transition-colors">Enterprise</Link>
+              <Link to="/features" className="text-sm font-medium py-2 hover:text-primary transition-colors">Features</Link>
               <Link to="/pricing" className="text-sm font-medium py-2 hover:text-primary transition-colors">Pricing</Link>
+              <Link to="/resources" className="text-sm font-medium py-2 hover:text-primary transition-colors">Resources</Link>
               <div className="flex items-center gap-2 py-2">
                 <Button variant="ghost" size="icon" onClick={toggleTheme}>
                   {theme === 'light' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -116,7 +93,7 @@ export const Navbar = () => {
                 <Button variant="ghost" className="w-full justify-start" size="sm">Log in</Button>
               </Link>
               <Link to="/signup">
-                <Button size="sm" className="bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90 w-full">
+                <Button size="sm" className="bg-primary hover:bg-primary/90 text-white w-full">
                   Sign up
                 </Button>
               </Link>

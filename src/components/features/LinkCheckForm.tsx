@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from "sonner";
-import { ArrowRight, Copy, ExternalLink } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Copy, ExternalLink, ScanLine } from 'lucide-react';
 
 export const LinkCheckForm = () => {
   const [isChecking, setIsChecking] = useState(false);
@@ -21,12 +21,12 @@ export const LinkCheckForm = () => {
     setIsChecking(true);
     
     // Mock checking process
-    toast.loading("Checking link...");
+    toast.loading("Analyzing link...");
     
     setTimeout(() => {
       setIsChecking(false);
       setShowResult(true);
-      toast.success("Check complete!");
+      toast.success("Analysis complete!");
     }, 2000);
   };
   
@@ -39,11 +39,11 @@ export const LinkCheckForm = () => {
     // Count number of URLs
     const urlsArray = bulkUrls.split('\n').filter(line => line.trim() !== '');
     
-    toast.loading(`Checking ${urlsArray.length} links...`);
+    toast.loading(`Analyzing ${urlsArray.length} links...`);
     
     setTimeout(() => {
       setIsChecking(false);
-      toast.success(`${urlsArray.length} links have been checked.`);
+      toast.success(`${urlsArray.length} links have been analyzed.`);
     }, 3000);
   };
 
@@ -65,14 +65,14 @@ export const LinkCheckForm = () => {
                       <Input
                         value={url}
                         onChange={(e) => setUrl(e.target.value)}
-                        placeholder="Check any link..."
+                        placeholder="Enter URL to check..."
                         className="pr-12 border-primary/10 rounded-xl"
                       />
                       <Button 
                         type="submit"
                         size="icon"
                         disabled={isChecking || !url}
-                        className="absolute right-1 bg-primary hover:bg-primary-600 w-8 h-8 flex items-center justify-center rounded-lg"
+                        className="absolute right-1 bg-primary hover:bg-primary/90 w-8 h-8 flex items-center justify-center rounded-lg"
                       >
                         <ArrowRight className="h-4 w-4" />
                       </Button>
@@ -99,7 +99,7 @@ export const LinkCheckForm = () => {
                         type="submit"
                         size="sm"
                         disabled={isChecking || !bulkUrls}
-                        className="bg-primary hover:bg-primary-600 rounded-xl"
+                        className="bg-primary hover:bg-primary/90 rounded-xl"
                       >
                         Check Now
                       </Button>
@@ -112,7 +112,7 @@ export const LinkCheckForm = () => {
             {url && (
               <div className="mt-3 flex items-center justify-between px-4 py-3 border-t border-primary/10 bg-primary/5">
                 <div className="flex items-center text-sm">
-                  <span className="text-muted-foreground">Try it out</span>
+                  <span className="text-muted-foreground">Check your website for broken links</span>
                 </div>
               </div>
             )}
@@ -124,9 +124,9 @@ export const LinkCheckForm = () => {
             <div className="flex items-center justify-between px-4 py-3 border-b border-primary/10">
               <div className="flex items-center gap-2">
                 <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-                  <span className="text-sm font-medium">LL</span>
+                  <ScanLine className="h-4 w-4" />
                 </div>
-                <div className="text-sm font-medium">linklytics.ai/report</div>
+                <div className="text-sm font-medium">Link Analysis Report</div>
               </div>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg border-primary/10">
@@ -140,16 +140,16 @@ export const LinkCheckForm = () => {
             <div className="px-4 py-3">
               <div className="flex items-center justify-between mb-2">
                 <div className="text-sm font-medium">Status Check</div>
-                <div className="text-xs text-primary font-medium">62.6K clicks</div>
+                <div className="text-xs text-primary font-medium">1 of 1 links valid</div>
               </div>
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-3 p-3 rounded-xl border border-primary/10 hover:border-primary/20 transition-all">
                   <div className="h-8 w-8 rounded-full bg-green-100 text-green-700 flex items-center justify-center">
-                    200
+                    <CheckCircle2 className="h-4 w-4" />
                   </div>
                   <div className="flex flex-col">
                     <div className="text-sm font-medium">{url || 'https://example.com'}</div>
-                    <div className="text-xs text-muted-foreground">5ms response • Valid</div>
+                    <div className="text-xs text-muted-foreground">200 OK • 154ms response time</div>
                   </div>
                 </div>
               </div>

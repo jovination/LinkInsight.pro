@@ -14,7 +14,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
 
-    --primary: 262 100% 66%;
+    --primary: 265 100% 66%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 240 4.8% 95.9%;
@@ -31,9 +31,9 @@
 
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 262 84% 60%;
+    --ring: 265 84% 60%;
 
-    --radius: 0.5rem;
+    --radius: 1rem;
   }
 
   .dark {
@@ -46,7 +46,7 @@
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 262 100% 66%;
+    --primary: 265 100% 66%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 240 3.7% 15.9%;
@@ -63,7 +63,7 @@
 
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 262 84% 60%;
+    --ring: 265 84% 60%;
   }
 }
 
@@ -84,11 +84,11 @@
 
 @layer components {
   .glass-card {
-    @apply bg-white/80 dark:bg-black/60 backdrop-blur-lg border border-white/20 dark:border-gray-800/50 shadow-subtle rounded-xl;
+    @apply bg-white/80 dark:bg-black/60 backdrop-blur-lg border border-white/20 dark:border-gray-800/50 shadow-subtle rounded-2xl;
   }
   
   .btn-gradient {
-    @apply bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white transition-all duration-200;
+    @apply bg-gradient-to-r from-primary to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white transition-all duration-200;
   }
   
   .section-container {
@@ -128,7 +128,7 @@
   }
   
   .linklytics-button {
-    @apply bg-primary hover:bg-primary-600 text-white font-medium rounded-xl transition-all duration-200;
+    @apply bg-primary hover:bg-primary/90 text-white font-medium rounded-xl transition-all duration-200;
   }
 }
 
