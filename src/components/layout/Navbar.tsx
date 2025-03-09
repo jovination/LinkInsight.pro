@@ -2,9 +2,14 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, Menu, X, Moon, Sun, Check } from 'lucide-react';
+import { ChevronDown, Menu, X, Moon, Sun } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
 
 export const Navbar = () => {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
@@ -16,50 +21,67 @@ export const Navbar = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between py-4">
-        <div className="flex items-center gap-2">
+    <header className="sticky top-0 z-40 w-full bg-background py-3 border-b border-border/40">
+      <div className="container flex items-center justify-between">
+        <div className="flex items-center gap-8">
           <Link to="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-semibold">L</div>
-            <span className="font-bold text-xl hidden md:inline-block">LinkChecker</span>
+            <span className="font-bold text-xl">LinkChecker</span>
           </Link>
+          
+          <nav className="hidden md:flex items-center gap-6">
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
+                Product
+                <ChevronDown className="h-4 w-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem>Link Analysis</DropdownMenuItem>
+                <DropdownMenuItem>SEO Tools</DropdownMenuItem>
+                <DropdownMenuItem>Reports</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
+                Resources
+                <ChevronDown className="h-4 w-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem>Documentation</DropdownMenuItem>
+                <DropdownMenuItem>Blog</DropdownMenuItem>
+                <DropdownMenuItem>Support</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
+                Company
+                <ChevronDown className="h-4 w-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem>About Us</DropdownMenuItem>
+                <DropdownMenuItem>Careers</DropdownMenuItem>
+                <DropdownMenuItem>Contact</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            <Link to="/enterprise" className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
+              Enterprise
+            </Link>
+            
+            <Link to="/pricing" className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
+              Pricing
+            </Link>
+          </nav>
         </div>
         
-        <nav className="hidden md:flex items-center gap-6">
-          <Link to="/features" className="text-sm font-medium hover:text-primary transition-colors">Features</Link>
-          <Link to="/pricing" className="text-sm font-medium hover:text-primary transition-colors">Pricing</Link>
-          <Link to="/docs" className="text-sm font-medium hover:text-primary transition-colors">Documentation</Link>
-          <Link to="/blog" className="text-sm font-medium hover:text-primary transition-colors">Blog</Link>
-        </nav>
-        
         <div className="hidden md:flex items-center gap-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-9 w-9">
-                {theme === 'light' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                <span className="sr-only">Toggle theme</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setTheme('light')} className="flex items-center gap-2">
-                <Sun className="h-4 w-4" />
-                <span>Light</span>
-                {theme === 'light' && <Check className="h-4 w-4 ml-auto" />}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme('dark')} className="flex items-center gap-2">
-                <Moon className="h-4 w-4" />
-                <span>Dark</span>
-                {theme === 'dark' && <Check className="h-4 w-4 ml-auto" />}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          
           <Link to="/login">
-            <Button variant="ghost" size="sm">Login</Button>
+            <Button variant="ghost" size="sm">Log in</Button>
           </Link>
           <Link to="/signup">
-            <Button size="sm" className="bg-primary hover:bg-primary-600">
-              Get Started <ChevronRight className="h-4 w-4 ml-1" />
+            <Button size="sm" className="bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90">
+              Sign up
             </Button>
           </Link>
         </div>
@@ -74,15 +96,15 @@ export const Navbar = () => {
           <SheetContent side="right" className="flex flex-col">
             <div className="flex items-center justify-between border-b pb-4">
               <Link to="/" className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-semibold">L</div>
                 <span className="font-bold text-xl">LinkChecker</span>
               </Link>
             </div>
             <nav className="flex flex-col gap-4 mt-8">
-              <Link to="/features" className="text-sm font-medium py-2 hover:text-primary transition-colors">Features</Link>
+              <Link to="/product" className="text-sm font-medium py-2 hover:text-primary transition-colors">Product</Link>
+              <Link to="/resources" className="text-sm font-medium py-2 hover:text-primary transition-colors">Resources</Link>
+              <Link to="/company" className="text-sm font-medium py-2 hover:text-primary transition-colors">Company</Link>
+              <Link to="/enterprise" className="text-sm font-medium py-2 hover:text-primary transition-colors">Enterprise</Link>
               <Link to="/pricing" className="text-sm font-medium py-2 hover:text-primary transition-colors">Pricing</Link>
-              <Link to="/docs" className="text-sm font-medium py-2 hover:text-primary transition-colors">Documentation</Link>
-              <Link to="/blog" className="text-sm font-medium py-2 hover:text-primary transition-colors">Blog</Link>
               <div className="flex items-center gap-2 py-2">
                 <Button variant="ghost" size="icon" onClick={toggleTheme}>
                   {theme === 'light' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -91,11 +113,11 @@ export const Navbar = () => {
               </div>
               <hr className="my-4" />
               <Link to="/login">
-                <Button variant="ghost" className="w-full justify-start" size="sm">Login</Button>
+                <Button variant="ghost" className="w-full justify-start" size="sm">Log in</Button>
               </Link>
               <Link to="/signup">
-                <Button size="sm" className="bg-primary hover:bg-primary-600 w-full">
-                  Get Started <ChevronRight className="h-4 w-4 ml-1" />
+                <Button size="sm" className="bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90 w-full">
+                  Sign up
                 </Button>
               </Link>
             </nav>

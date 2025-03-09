@@ -9,163 +9,264 @@ import { LinkCheckForm } from '@/components/features/LinkCheckForm';
 import { 
   CheckCircle2, 
   ArrowRight, 
-  Zap, 
   BarChart3, 
   Bell, 
-  CreditCard, 
   Globe, 
   LineChart, 
   Lock, 
-  Gauge
+  Gauge,
+  ScanLine,
+  QrCode,
+  Settings2,
+  Users,
+  Link2,
+  Edit
 } from 'lucide-react';
 
 const Index = () => {
   return (
     <MainLayout>
       {/* Hero Section */}
-      <section className="relative py-20 md:py-28 overflow-hidden px-4">
+      <section className="py-20 overflow-hidden px-4">
         <div className="container mx-auto max-w-7xl relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight">
-                Monitor and fix broken links <span className="text-primary">automatically</span>
-              </h1>
-              <p className="text-xl text-muted-foreground max-w-md">
-                LinkChecker helps you find and fix broken links, improve SEO, and enhance user experience on your website.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link to="/signup">
-                  <Button size="lg" className="bg-primary hover:bg-primary-600 w-full sm:w-auto">
-                    Start Free Trial
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
-                <Link to="/login">
-                  <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                    Log In
-                  </Button>
-                </Link>
-              </div>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <CheckCircle2 className="h-4 w-4 text-primary" />
-                  <span>No credit card required</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <CheckCircle2 className="h-4 w-4 text-primary" />
-                  <span>14-day free trial</span>
-                </div>
-              </div>
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm mb-6">
+              <span>Introducing LinkChecker Analytics</span>
+              <Link to="/features" className="text-xs underline">Read more</Link>
             </div>
-            <div className="lg:px-8">
-              <div className="rounded-xl overflow-hidden shadow-lg border">
-                <LinkCheckForm />
-              </div>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
+              Short links with
+              <br />
+              superpowers
+            </h1>
+            <p className="text-xl text-muted-foreground max-w-md mx-auto mb-8">
+              LinkChecker is the open-source link management platform for modern marketing teams
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center gap-4 mb-12">
+              <Link to="/signup">
+                <Button size="lg" className="bg-black hover:bg-black/90 text-white dark:bg-white dark:text-black dark:hover:bg-white/90 w-full sm:w-auto">
+                  Start for free
+                </Button>
+              </Link>
+              <Link to="/demo">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto">
+                  Get a demo
+                </Button>
+              </Link>
+            </div>
+          </div>
+          
+          <div className="max-w-2xl mx-auto">
+            <LinkCheckForm />
+          </div>
+          
+          <div className="mt-24">
+            <div className="text-center text-sm text-muted-foreground mb-8">
+              Giving marketing superpowers to world-class companies
+            </div>
+            <div className="flex flex-wrap justify-center gap-8 items-center">
+              <img src="/placeholder.svg" alt="Company logo" className="h-8 opacity-70" />
+              <img src="/placeholder.svg" alt="Company logo" className="h-8 opacity-70" />
+              <img src="/placeholder.svg" alt="Company logo" className="h-8 opacity-70" />
+              <img src="/placeholder.svg" alt="Company logo" className="h-8 opacity-70" />
             </div>
           </div>
         </div>
       </section>
       
       {/* Features Section */}
-      <section className="py-20 bg-muted/30 px-4">
+      <section className="py-24 px-4">
         <div className="container mx-auto max-w-7xl">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Powerful Features for Website Optimization</h2>
+          <div className="text-center max-w-3xl mx-auto mb-20">
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">Powerful features for modern marketing teams</h2>
             <p className="text-lg text-muted-foreground">
-              Everything you need to monitor, analyze, and improve your website's links and SEO.
+              LinkChecker is more than just a link shortener. We've built a suite of powerful features that gives you marketing superpowers.
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card className="feature-card">
-              <CardHeader className="pb-2">
-                <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                  <Globe className="h-6 w-6 text-primary" />
-                </div>
-                <CardTitle>Link Analysis</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Scan your entire website for broken links, redirects, and slow-loading pages in one go.
-                </p>
-              </CardContent>
-            </Card>
+          <div className="grid md:grid-cols-2 gap-16 mb-16">
+            <div>
+              <div className="space-y-3 mb-6">
+                <Card className="border shadow-sm overflow-hidden">
+                  <CardContent className="p-0">
+                    <div className="flex items-center justify-between px-4 py-3 border-b">
+                      <div className="flex items-center gap-2">
+                        <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center">
+                          <Link2 className="h-3 w-3" />
+                        </div>
+                        <div className="text-sm font-medium">acme.co</div>
+                      </div>
+                      <div className="text-xs text-muted-foreground">15.5K clicks</div>
+                    </div>
+                    <div className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
+                          <Link2 className="h-3 w-3 text-primary" />
+                        </div>
+                        <div className="text-sm font-medium">Original URL shows here</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="border shadow-sm overflow-hidden">
+                  <CardContent className="p-0">
+                    <div className="flex items-center justify-between px-4 py-3 border-b">
+                      <div className="flex items-center gap-2">
+                        <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center">
+                          <Link2 className="h-3 w-3" />
+                        </div>
+                        <div className="text-sm font-medium">acme.li</div>
+                      </div>
+                      <div className="text-xs text-muted-foreground">3.7K clicks</div>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="border shadow-sm overflow-hidden">
+                  <CardContent className="p-0">
+                    <div className="flex items-center justify-between px-4 py-3 border-b">
+                      <div className="flex items-center gap-2">
+                        <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center">
+                          <Link2 className="h-3 w-3" />
+                        </div>
+                        <div className="text-sm font-medium">acme.me</div>
+                      </div>
+                      <div className="text-xs text-muted-foreground">2.4K clicks</div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              <h3 className="text-xl font-bold mb-3">Stand out with custom domains</h3>
+              <p className="text-muted-foreground mb-6">
+                Create branded short links with your own domain and improve click-through rates by 30%.
+              </p>
+              <Button variant="outline" size="sm">
+                Learn more
+              </Button>
+            </div>
             
-            <Card className="feature-card">
-              <CardHeader className="pb-2">
-                <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                  <Bell className="h-6 w-6 text-primary" />
-                </div>
-                <CardTitle>Real-Time Alerts</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Get notified instantly when new broken links are detected or fixed on your website.
-                </p>
-              </CardContent>
-            </Card>
+            <div>
+              <Card className="border shadow-sm mb-6">
+                <CardHeader>
+                  <CardTitle className="text-xl">QR Code Design</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex justify-center p-6 bg-muted/30 rounded-md mb-4">
+                    <div className="h-48 w-48 bg-white flex items-center justify-center">
+                      <QrCode className="h-32 w-32" />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm font-medium">Logo</div>
+                    <div className="w-12 h-6 bg-primary/20 rounded-full relative">
+                      <div className="absolute right-1 top-1 w-4 h-4 rounded-full bg-primary"></div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <h3 className="text-xl font-bold mb-3">Branded QR codes</h3>
+              <p className="text-muted-foreground mb-6">
+                QR codes and short links are like peas in a pod. LinkChecker offers free QR codes for every short link you create.
+              </p>
+              <Button variant="outline" size="sm">
+                Try the demo
+              </Button>
+            </div>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-16">
+            <div>
+              <Card className="border shadow-sm mb-6">
+                <CardContent className="p-6">
+                  <h4 className="text-lg font-semibold mb-4">Link customization</h4>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Link2 className="h-5 w-5" />
+                        <span>Link Preview</span>
+                      </div>
+                      <div className="w-12 h-6 bg-primary/20 rounded-full relative">
+                        <div className="absolute right-1 top-1 w-4 h-4 rounded-full bg-primary"></div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Settings2 className="h-5 w-5" />
+                        <span>UTM Parameters</span>
+                      </div>
+                      <div className="w-12 h-6 bg-primary/20 rounded-full relative">
+                        <div className="absolute right-1 top-1 w-4 h-4 rounded-full bg-primary"></div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Link2 className="h-5 w-5" />
+                        <span>Expiration</span>
+                      </div>
+                      <div className="w-12 h-6 bg-muted rounded-full relative">
+                        <div className="absolute left-1 top-1 w-4 h-4 rounded-full bg-muted-foreground/30"></div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Edit className="h-5 w-5" />
+                        <span>Targeting</span>
+                      </div>
+                      <div className="w-12 h-6 bg-primary/20 rounded-full relative">
+                        <div className="absolute right-1 top-1 w-4 h-4 rounded-full bg-primary"></div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <h3 className="text-xl font-bold mb-3">Advanced link features</h3>
+              <p className="text-muted-foreground mb-6">
+                Supercharge your links with custom link previews, device targeting, geo targeting, password protection, and more.
+              </p>
+              <Button variant="outline" size="sm">
+                Learn more
+              </Button>
+            </div>
             
-            <Card className="feature-card">
-              <CardHeader className="pb-2">
-                <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                  <LineChart className="h-6 w-6 text-primary" />
-                </div>
-                <CardTitle>SEO Metrics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Track key SEO metrics and get actionable recommendations to improve your search rankings.
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card className="feature-card">
-              <CardHeader className="pb-2">
-                <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                  <Gauge className="h-6 w-6 text-primary" />
-                </div>
-                <CardTitle>Performance Analysis</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Measure page load times and identify slow-loading resources affecting user experience.
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card className="feature-card">
-              <CardHeader className="pb-2">
-                <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                  <BarChart3 className="h-6 w-6 text-primary" />
-                </div>
-                <CardTitle>Custom Reports</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Generate detailed reports on your website's health and export in various formats.
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card className="feature-card">
-              <CardHeader className="pb-2">
-                <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                  <Lock className="h-6 w-6 text-primary" />
-                </div>
-                <CardTitle>API Access</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Integrate with your tools and automate link checking with our powerful API (paid plans).
-                </p>
-              </CardContent>
-            </Card>
+            <div>
+              <Card className="border shadow-sm mb-6">
+                <CardContent className="p-6">
+                  <div className="text-center mb-2">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs mb-2">
+                      <span>SAML SSO</span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3 mb-4">
+                    {Array.from({ length: 12 }).map((_, i) => (
+                      <div key={i} className="aspect-square rounded-full bg-muted flex items-center justify-center">
+                        <Users className="h-6 w-6 text-muted-foreground/50" />
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <h3 className="text-xl font-bold mb-3">Collaborate with your team</h3>
+              <p className="text-muted-foreground mb-6">
+                Invite your teammates to collaborate on your links. For enterprises, LinkChecker offers SAML SSO with Okta, Google, and Azure AD for higher security.
+              </p>
+              <Button variant="outline" size="sm">
+                Learn more
+              </Button>
+            </div>
           </div>
         </div>
       </section>
       
       {/* Pricing Section */}
-      <section className="py-20 px-4">
+      <section className="py-24 bg-muted/30 px-4">
         <div className="container mx-auto max-w-7xl">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Simple, Transparent Pricing</h2>
@@ -204,7 +305,7 @@ const Index = () => {
             </Card>
             
             <Card className="border shadow-md relative">
-              <div className="absolute -top-3 left-0 right-0 mx-auto w-max px-3 py-1 rounded-full text-xs font-semibold bg-primary text-white">
+              <div className="absolute -top-3 left-0 right-0 mx-auto w-max px-3 py-1 rounded-full text-xs font-semibold bg-black text-white dark:bg-white dark:text-black">
                 Most Popular
               </div>
               <CardHeader>
@@ -235,7 +336,7 @@ const Index = () => {
               </CardContent>
               <CardFooter>
                 <Link to="/signup" className="w-full">
-                  <Button className="w-full bg-primary hover:bg-primary-600">
+                  <Button className="w-full bg-black hover:bg-black/90 text-white dark:bg-white dark:text-black dark:hover:bg-white/90">
                     Start Free Trial
                   </Button>
                 </Link>
@@ -295,7 +396,7 @@ const Index = () => {
       </section>
       
       {/* FAQ Section */}
-      <section className="py-20 bg-muted/30 px-4">
+      <section className="py-20 px-4">
         <div className="container mx-auto max-w-4xl">
           <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center">Frequently Asked Questions</h2>
           
@@ -348,26 +449,26 @@ const Index = () => {
       {/* CTA Section */}
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-4xl">
-          <div className="bg-gradient-to-r from-primary to-primary-700 rounded-3xl overflow-hidden">
-            <div className="p-8 md:p-12 text-white">
+          <div className="bg-black dark:bg-white rounded-3xl overflow-hidden">
+            <div className="p-8 md:p-12 text-white dark:text-black">
               <div className="text-center">
                 <h2 className="text-3xl md:text-4xl font-bold mb-4">Start checking your links today</h2>
-                <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
+                <p className="text-lg text-white/80 dark:text-black/80 mb-8 max-w-2xl mx-auto">
                   Join thousands of professionals who trust LinkChecker to monitor and optimize their online presence.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Link to="/signup">
-                    <Button size="lg" variant="secondary" className="w-full sm:w-auto">
+                    <Button size="lg" variant="outline" className="w-full sm:w-auto border-white/20 bg-white text-black hover:bg-white/90 dark:border-black/20 dark:bg-black dark:text-white dark:hover:bg-black/90">
                       Start Free Trial
                     </Button>
                   </Link>
                   <Link to="/demo">
-                    <Button size="lg" variant="outline" className="w-full sm:w-auto border-white/20 bg-white/10 hover:bg-white/20 text-white">
+                    <Button size="lg" variant="outline" className="w-full sm:w-auto border-white/20 bg-white/10 hover:bg-white/20 text-white dark:border-black/20 dark:bg-black/10 dark:hover:bg-black/20 dark:text-black">
                       Request Demo
                     </Button>
                   </Link>
                 </div>
-                <p className="text-sm text-white/60 mt-4">
+                <p className="text-sm text-white/60 dark:text-black/60 mt-4">
                   No credit card required. 14-day free trial on all plans.
                 </p>
               </div>
