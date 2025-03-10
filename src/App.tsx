@@ -14,6 +14,7 @@ import ReportsPage from "./pages/ReportsPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
+import DashboardNotFound from "./pages/DashboardNotFound";
 
 const queryClient = new QueryClient();
 
@@ -36,7 +37,10 @@ const App = () => (
           <Route path="/dashboard/reports" element={<ReportsPage />} />
           <Route path="/dashboard/analytics" element={<AnalyticsPage />} />
           
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          {/* Dashboard Not Found - Catch all dashboard routes */}
+          <Route path="/dashboard/*" element={<DashboardNotFound />} />
+          
+          {/* Main Not Found - Catch all other routes */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

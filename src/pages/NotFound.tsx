@@ -19,8 +19,8 @@ const NotFound = () => {
     <MainLayout>
       <div className="min-h-[calc(100vh-16rem)] flex items-center justify-center px-4">
         <div className="text-center max-w-md">
-          <div className="mx-auto w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
-            <AlertCircle className="h-10 w-10 text-primary" />
+          <div className="mx-auto w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+            <AlertCircle className="h-12 w-12 text-primary" />
           </div>
           <h1 className="text-6xl font-bold mb-4">404</h1>
           <p className="text-xl text-muted-foreground mb-8">
