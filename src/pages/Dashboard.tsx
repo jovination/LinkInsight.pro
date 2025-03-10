@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DashboardSidebar } from '@/components/layout/DashboardSidebar';
+import { DashboardHeader } from '@/components/layout/DashboardHeader';
 import { 
   BarChart3, 
   LinkIcon, 
@@ -16,38 +17,71 @@ import {
   Plus, 
   Download 
 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { apiService } from '@/services/api';
+import { toast } from 'sonner';
 
 const Dashboard = () => {
+  const { 
+    data: statsData, 
+    isLoading: statsLoading,
+    error: statsError 
+  } = useQuery({
+    queryKey: ['dashboardStats'],
+    queryFn: apiService.getDashboardStats,
+    // Mock data for development until backend is ready
+    placeholderData: {
+      totalLinks: 248,
+      brokenLinks: 16,
+      healthyLinks: 224,
+      avgLoadTime: '1.2s'
+    }
+  });
+
+  const { 
+    data: linksData,
+    isLoading: linksLoading
+  } = useQuery({
+    queryKey: ['recentLinks'],
+    queryFn: apiService.getLinks,
+    // Mock data for development
+    placeholderData: [
+      { id: '1', url: 'https://example.com/blog', status: 'healthy', lastChecked: 'Just now' },
+      { id: '2', url: 'https://example.com/about', status: 'broken', lastChecked: '5 min ago' },
+      { id: '3', url: 'https://example.com/products', status: 'healthy', lastChecked: '25 min ago' },
+      { id: '4', url: 'https://example.com/contact', status: 'healthy', lastChecked: '1 hour ago' }
+    ]
+  });
+
+  const handleNewCheck = () => {
+    // In a real app, this would open a modal or navigate to a new page
+    toast.info('New link check feature will be implemented soon');
+  };
+
   return (
     <div className="grid lg:grid-cols-[280px_1fr] h-screen">
-      <DashboardSidebar />
+      <div className="hidden lg:block">
+        <DashboardSidebar />
+      </div>
       <div className="flex flex-col h-screen overflow-auto">
-        <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/95 px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="flex-1">
-            <h1 className="text-lg font-semibold">Dashboard</h1>
-          </div>
-          <div className="flex items-center gap-4">
-            <Button variant="outline" size="sm" className="rounded-xl">
-              <Download className="mr-2 h-4 w-4" />
-              Export
-            </Button>
-            <Button size="sm" className="bg-primary hover:bg-primary-600 rounded-xl">
-              <Plus className="mr-2 h-4 w-4" />
-              New Check
-            </Button>
-          </div>
-        </header>
-        <main className="flex-1 p-6">
+        <DashboardHeader 
+          title="Dashboard" 
+          showExport={true}
+          showNewButton={true}
+          newButtonText="New Check"
+          onNewButtonClick={handleNewCheck}
+        />
+        <main className="flex-1 p-4 md:p-6">
           <div className="grid gap-6">
             {/* Summary Cards */}
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 md:gap-6 grid-cols-2 md:grid-cols-4">
               <Card className="stats-card border-primary/10">
                 <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
                   <CardTitle className="text-sm font-medium">Total Links</CardTitle>
                   <LinkIcon className="h-4 w-4 text-primary" />
                 </CardHeader>
                 <CardContent className="p-4 pt-2">
-                  <div className="text-2xl font-bold">248</div>
+                  <div className="text-2xl font-bold">{statsData?.totalLinks}</div>
                   <p className="text-xs text-muted-foreground">
                     <span className="text-emerald-500 flex items-center">
                       <ArrowUpRight className="mr-1 h-3 w-3" /> +12% from last month
@@ -55,13 +89,15 @@ const Dashboard = () => {
                   </p>
                 </CardContent>
               </Card>
+              
+              {/* Similar cards for other stats */}
               <Card className="stats-card border-destructive/10">
                 <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
                   <CardTitle className="text-sm font-medium">Broken Links</CardTitle>
                   <AlertTriangle className="h-4 w-4 text-destructive" />
                 </CardHeader>
                 <CardContent className="p-4 pt-2">
-                  <div className="text-2xl font-bold">16</div>
+                  <div className="text-2xl font-bold">{statsData?.brokenLinks}</div>
                   <p className="text-xs text-muted-foreground">
                     <span className="text-destructive flex items-center">
                       <ArrowUpRight className="mr-1 h-3 w-3" /> +3 since last check
@@ -69,13 +105,14 @@ const Dashboard = () => {
                   </p>
                 </CardContent>
               </Card>
+              
               <Card className="stats-card border-emerald-500/10">
                 <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
                   <CardTitle className="text-sm font-medium">Healthy Links</CardTitle>
                   <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                 </CardHeader>
                 <CardContent className="p-4 pt-2">
-                  <div className="text-2xl font-bold">224</div>
+                  <div className="text-2xl font-bold">{statsData?.healthyLinks}</div>
                   <p className="text-xs text-muted-foreground">
                     <span className="text-emerald-500 flex items-center">
                       <ArrowUpRight className="mr-1 h-3 w-3" /> 94% success rate
@@ -83,13 +120,14 @@ const Dashboard = () => {
                   </p>
                 </CardContent>
               </Card>
+              
               <Card className="stats-card border-primary/10">
                 <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
                   <CardTitle className="text-sm font-medium">Avg. Load Time</CardTitle>
                   <Clock className="h-4 w-4 text-primary" />
                 </CardHeader>
                 <CardContent className="p-4 pt-2">
-                  <div className="text-2xl font-bold">1.2s</div>
+                  <div className="text-2xl font-bold">{statsData?.avgLoadTime}</div>
                   <p className="text-xs text-muted-foreground">
                     <span className="text-emerald-500 flex items-center">
                       <ArrowUpRight className="mr-1 h-3 w-3" /> 0.3s faster than avg.
@@ -145,18 +183,22 @@ const Dashboard = () => {
                 </CardHeader>
                 <CardContent className="p-0">
                   <div className="space-y-0">
-                    {["https://example.com/blog", "https://example.com/about", "https://example.com/products", "https://example.com/contact"].map((url, index) => (
-                      <div key={index} className="flex items-center justify-between border-t px-4 py-3 text-sm">
+                    {linksLoading ? (
+                      <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+                        Loading recent links...
+                      </div>
+                    ) : linksData?.map((link, index) => (
+                      <div key={link.id} className="flex items-center justify-between border-t px-4 py-3 text-sm">
                         <div className="flex items-center gap-3">
-                          {index === 1 ? (
+                          {link.status === 'broken' ? (
                             <AlertTriangle className="h-4 w-4 text-destructive" />
                           ) : (
                             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                           )}
-                          <span className="font-medium">{url}</span>
+                          <span className="font-medium">{link.url}</span>
                         </div>
                         <div className="text-muted-foreground">
-                          {index === 0 ? "Just now" : index === 1 ? "5 min ago" : index === 2 ? "25 min ago" : "1 hour ago"}
+                          {link.lastChecked}
                         </div>
                       </div>
                     ))}

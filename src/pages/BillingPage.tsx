@@ -1,8 +1,12 @@
+
 import React from 'react';
 import { DashboardSidebar } from '@/components/layout/DashboardSidebar';
+import { DashboardHeader } from '@/components/layout/DashboardHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useQuery } from '@tanstack/react-query';
+import { apiService } from '@/services/api';
 import { 
   CreditCard, 
   Download,
@@ -12,32 +16,49 @@ import {
   ShieldCheck,
   BarChart3
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 const BillingPage = () => {
-  const invoices = [
-    { id: 'INV-001', date: 'May 1, 2023', amount: '$19.99', status: 'Paid' },
-    { id: 'INV-002', date: 'April 1, 2023', amount: '$19.99', status: 'Paid' },
-    { id: 'INV-003', date: 'March 1, 2023', amount: '$19.99', status: 'Paid' },
-    { id: 'INV-004', date: 'February 1, 2023', amount: '$19.99', status: 'Paid' },
-  ];
+  // Get invoices data from API
+  const { 
+    data: invoices = [], 
+    isLoading: invoicesLoading,
+  } = useQuery({
+    queryKey: ['invoices'],
+    queryFn: apiService.getInvoices,
+    // Mock data for development until backend is ready
+    placeholderData: [
+      { id: 'INV-001', date: 'May 1, 2023', amount: '$19.99', status: 'Paid' },
+      { id: 'INV-002', date: 'April 1, 2023', amount: '$19.99', status: 'Paid' },
+      { id: 'INV-003', date: 'March 1, 2023', amount: '$19.99', status: 'Paid' },
+      { id: 'INV-004', date: 'February 1, 2023', amount: '$19.99', status: 'Paid' },
+    ]
+  });
+
+  const handleUpdatePayment = () => {
+    // This would typically open a modal
+    toast.info('Update payment feature will be implemented soon');
+  };
 
   return (
     <div className="grid lg:grid-cols-[280px_1fr] h-screen">
-      <DashboardSidebar />
+      <div className="hidden lg:block">
+        <DashboardSidebar />
+      </div>
       <div className="flex flex-col h-screen overflow-auto">
-        <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/95 px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="flex-1">
-            <h1 className="text-lg font-semibold">Billing & Subscription</h1>
-          </div>
-          <div className="flex items-center gap-4">
-            <Button size="sm" className="bg-primary hover:bg-primary-600 rounded-xl">
-              <CreditCard className="mr-2 h-4 w-4" />
-              Update Payment Method
-            </Button>
-          </div>
-        </header>
-        <main className="flex-1 p-6">
+        <DashboardHeader 
+          title="Billing & Subscription" 
+          showNewButton={false}
+        />
+        <main className="flex-1 p-4 md:p-6">
           <div className="grid gap-6">
+            <div className="mb-4">
+              <Button size="sm" className="bg-primary hover:bg-primary-600 rounded-xl" onClick={handleUpdatePayment}>
+                <CreditCard className="mr-2 h-4 w-4" />
+                Update Payment Method
+              </Button>
+            </div>
+              
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               <Card className="border-primary/10">
                 <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
@@ -155,28 +176,34 @@ const BillingPage = () => {
                 <CardTitle className="text-base">Billing History</CardTitle>
                 <CardDescription>View and download your past invoices.</CardDescription>
               </CardHeader>
-              <CardContent className="p-0">
-                <div className="divide-y">
-                  <div className="grid grid-cols-[1fr_100px_100px_80px] gap-2 px-4 py-3 text-sm font-medium text-muted-foreground">
-                    <div>Invoice</div>
-                    <div>Date</div>
-                    <div>Amount</div>
-                    <div></div>
+              <CardContent className="p-0 overflow-auto">
+                {invoicesLoading ? (
+                  <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+                    Loading invoices...
                   </div>
-                  
-                  {invoices.map((invoice, index) => (
-                    <div key={index} className="grid grid-cols-[1fr_100px_100px_80px] gap-2 px-4 py-3 text-sm items-center">
-                      <div className="font-medium">{invoice.id}</div>
-                      <div className="text-muted-foreground">{invoice.date}</div>
-                      <div>{invoice.amount}</div>
-                      <div>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <Download className="h-4 w-4" />
-                        </Button>
-                      </div>
+                ) : (
+                  <div className="divide-y">
+                    <div className="grid grid-cols-[1fr_100px_100px_80px] gap-2 px-4 py-3 text-sm font-medium text-muted-foreground">
+                      <div>Invoice</div>
+                      <div>Date</div>
+                      <div>Amount</div>
+                      <div></div>
                     </div>
-                  ))}
-                </div>
+                    
+                    {invoices.map((invoice: any, index: number) => (
+                      <div key={index} className="grid grid-cols-[1fr_100px_100px_80px] gap-2 px-4 py-3 text-sm items-center">
+                        <div className="font-medium">{invoice.id}</div>
+                        <div className="text-muted-foreground">{invoice.date}</div>
+                        <div>{invoice.amount}</div>
+                        <div>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
