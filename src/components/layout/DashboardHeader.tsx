@@ -8,7 +8,9 @@ import {
   Menu, 
   Plus, 
   Search, 
-  User
+  User,
+  Moon,
+  Sun
 } from 'lucide-react';
 import {
   Sheet,
@@ -24,6 +26,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { DashboardSidebar } from './DashboardSidebar';
+import { useTheme } from '@/context/ThemeContext';
 
 interface DashboardHeaderProps {
   title: string;
@@ -42,6 +45,8 @@ export const DashboardHeader = ({
   newButtonText = "New Check",
   onNewButtonClick,
 }: DashboardHeaderProps) => {
+  const { theme, toggleTheme } = useTheme();
+  
   const handleNewButton = () => {
     if (onNewButtonClick) {
       onNewButtonClick();
@@ -88,6 +93,16 @@ export const DashboardHeader = ({
       </div>
 
       <div className="flex items-center gap-2 sm:gap-4">
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className="rounded-full" 
+          onClick={toggleTheme}
+        >
+          {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+          <span className="sr-only">Toggle theme</span>
+        </Button>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="icon" className="rounded-full relative">
