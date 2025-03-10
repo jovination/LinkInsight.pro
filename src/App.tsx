@@ -12,6 +12,9 @@ import Dashboard from "./pages/Dashboard";
 import LinksPage from "./pages/LinksPage";
 import ReportsPage from "./pages/ReportsPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
+import BillingPage from "./pages/BillingPage";
+import NotificationsPage from "./pages/NotificationsPage";
+import SettingsPage from "./pages/SettingsPage";
 import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
 import DashboardNotFound from "./pages/DashboardNotFound";
@@ -36,6 +39,9 @@ const App = () => (
           <Route path="/dashboard/links" element={<LinksPage />} />
           <Route path="/dashboard/reports" element={<ReportsPage />} />
           <Route path="/dashboard/analytics" element={<AnalyticsPage />} />
+          <Route path="/dashboard/billing" element={<BillingPage />} />
+          <Route path="/dashboard/notifications" element={<NotificationsPage />} />
+          <Route path="/dashboard/settings" element={<SettingsPage />} />
           
           {/* Dashboard Not Found - Catch all dashboard routes */}
           <Route path="/dashboard/*" element={<DashboardNotFound />} />
