@@ -1,35 +1,58 @@
 
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, Navigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useToast } from '@/hooks/use-toast';
-import { Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, EyeIcon, EyeOffIcon, Loader2 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { toast } from 'sonner';
 
 const SignUp = () => {
-  const { toast } = useToast();
+  const { register, isAuthenticated, isLoading: authLoading } = useAuth();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const handleSubmit = (e: React.FormEvent) => {
+  // If already authenticated, redirect to dashboard
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  // Show loading state
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+  
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock signup functionality
-    toast({
-      title: "Account created!",
-      description: "We've created your account. Please check your email to verify.",
-      duration: 5000,
-    });
-  };
-
-  const handleGoogleSignUp = () => {
-    // Handle Google OAuth sign-up
-    toast({
-      title: "Google Sign Up",
-      description: "Redirecting to Google authentication...",
-      duration: 3000,
-    });
+    
+    if (!termsAccepted) {
+      toast.error("You must accept the Terms of Service and Privacy Policy");
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      await register(name, email, password);
+      // Success toast and redirect are handled in the AuthContext
+    } catch (error) {
+      // Error toast is handled in the AuthContext
+      console.error('Registration error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -45,9 +68,10 @@ const SignUp = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <Button 
-                onClick={handleGoogleSignUp} 
                 variant="outline" 
                 className="w-full flex items-center justify-center gap-2 py-5"
+                disabled={isSubmitting}
+                onClick={() => toast.info('Google Sign Up will be implemented soon')}
               >
                 <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M22.56 12.25C22.56 11.47 22.49 10.72 22.36 10H12V14.26H17.92C17.66 15.63 16.88 16.79 15.72 17.57V20.34H19.22C21.28 18.42 22.56 15.6 22.56 12.25Z" fill="#4285F4" />
@@ -72,7 +96,14 @@ const SignUp = () => {
                   <Label htmlFor="name">Full Name</Label>
                   <div className="relative">
                     <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input id="name" placeholder="John Smith" className="pl-10" required />
+                    <Input 
+                      id="name" 
+                      placeholder="John Smith" 
+                      className="pl-10" 
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required 
+                    />
                   </div>
                 </div>
                 
@@ -80,7 +111,15 @@ const SignUp = () => {
                   <Label htmlFor="email">Email</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input id="email" type="email" placeholder="john@example.com" className="pl-10" required />
+                    <Input 
+                      id="email" 
+                      type="email" 
+                      placeholder="john@example.com" 
+                      className="pl-10" 
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required 
+                    />
                   </div>
                 </div>
                 
@@ -90,12 +129,41 @@ const SignUp = () => {
                   </div>
                   <div className="relative">
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input id="password" type="password" placeholder="••••••••" className="pl-10" required />
+                    <Input 
+                      id="password" 
+                      type={showPassword ? "text" : "password"} 
+                      placeholder="••••••••" 
+                      className="pl-10" 
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required 
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0 top-0 h-full px-3"
+                      onClick={() => setShowPassword(!showPassword)}
+                      tabIndex={-1}
+                    >
+                      {showPassword ? (
+                        <EyeOffIcon className="h-4 w-4 text-gray-400" />
+                      ) : (
+                        <EyeIcon className="h-4 w-4 text-gray-400" />
+                      )}
+                      <span className="sr-only">
+                        {showPassword ? "Hide password" : "Show password"}
+                      </span>
+                    </Button>
                   </div>
                 </div>
 
                 <div className="flex items-center space-x-2">
-                  <Checkbox id="terms" required />
+                  <Checkbox 
+                    id="terms" 
+                    checked={termsAccepted}
+                    onCheckedChange={(checked) => setTermsAccepted(checked === true)}
+                  />
                   <label
                     htmlFor="terms"
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -111,9 +179,22 @@ const SignUp = () => {
                   </label>
                 </div>
 
-                <Button type="submit" className="w-full bg-primary hover:bg-primary-600">
-                  Create Account
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                <Button 
+                  type="submit" 
+                  className="w-full bg-primary hover:bg-primary-600"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating Account...
+                    </>
+                  ) : (
+                    <>
+                      Create Account
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
+                  )}
                 </Button>
               </form>
             </CardContent>

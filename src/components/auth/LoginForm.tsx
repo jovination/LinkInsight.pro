@@ -11,9 +11,10 @@ import {
   CardHeader, 
   CardTitle 
 } from '@/components/ui/card';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
-import { AlignJustify, EyeIcon, EyeOffIcon } from 'lucide-react';
+import { EyeIcon, EyeOffIcon, Loader2 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 export const LoginForm = () => {
   const [email, setEmail] = useState('');
@@ -21,30 +22,18 @@ export const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
-  const navigate = useNavigate();
+  const { login } = useAuth();
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // This is a demo implementation - you'd connect this to your auth provider in a real app
     setIsLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        title: "Successfully logged in",
-        description: "Welcome back to LinkChecker!",
-      });
-      
-      navigate('/dashboard');
+      await login(email, password);
     } catch (error) {
-      toast({
-        title: "Login failed",
-        description: "Invalid email or password. Please try again.",
-        variant: "destructive",
-      });
+      // Error is already handled in the login function
+      console.error('Login submission error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -52,6 +41,28 @@ export const LoginForm = () => {
   
   const toggleShowPassword = () => {
     setShowPassword(!showPassword);
+  };
+
+  // Demo login function for quick access
+  const handleDemoLogin = async () => {
+    setEmail('demo@example.com');
+    setPassword('password123');
+    
+    setIsLoading(true);
+    
+    try {
+      await login('demo@example.com', 'password123');
+    } catch (error) {
+      console.error('Demo login failed:', error);
+      // Show specific message for demo login
+      toast({
+        title: "Demo login failed",
+        description: "Please try the regular login with your credentials",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   return (
@@ -115,7 +126,14 @@ export const LoginForm = () => {
             className="w-full bg-primary hover:bg-primary-600"
             disabled={isLoading}
           >
-            {isLoading ? "Logging in..." : "Login"}
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Logging in...
+              </>
+            ) : (
+              "Login"
+            )}
           </Button>
         </form>
         
@@ -129,7 +147,7 @@ export const LoginForm = () => {
         </div>
         
         <div className="grid grid-cols-1 gap-3">
-          <Button variant="outline" className="w-full">
+          <Button variant="outline" className="w-full" onClick={handleDemoLogin} disabled={isLoading}>
             <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
               <path
                 d="M12.0003 4.75C13.7703 4.75 15.3553 5.36002 16.6053 6.54998L20.0303 3.125C17.9502 1.19 15.2353 0 12.0003 0C7.31028 0 3.25527 2.69 1.28027 6.60998L5.27028 9.70498C6.21525 6.86002 8.87028 4.75 12.0003 4.75Z"
@@ -148,7 +166,7 @@ export const LoginForm = () => {
                 fill="#34A853"
               />
             </svg>
-            Sign in with Google
+            {isLoading ? "Please wait..." : "Use Demo Account"}
           </Button>
         </div>
       </CardContent>

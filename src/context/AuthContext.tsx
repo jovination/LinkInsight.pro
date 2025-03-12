@@ -3,6 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { apiService, UserData } from '@/services/api';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthContextType {
   user: UserData | null;
@@ -21,11 +22,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Check if user is authenticated on initial load
+  // Check if user is authenticated on initial load and setup auth state listener
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const currentUser = apiService.getCurrentUser();
+        const currentUser = await apiService.getCurrentUser();
         setUser(currentUser);
         
         // If on login or signup page but already authenticated, redirect to dashboard
@@ -36,21 +37,39 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } catch (error) {
         console.error('Auth check failed:', error);
         // Clear potentially corrupted auth data
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('user');
+        await supabase.auth.signOut();
       } finally {
         setIsLoading(false);
       }
     };
 
+    // Initial auth check
     checkAuth();
+
+    // Set up auth state change listener
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          const user = await apiService.getCurrentUser();
+          setUser(user);
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+        }
+      }
+    );
+
+    // Cleanup listener on unmount
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, [navigate]);
 
   // Login handler
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const { user } = await apiService.login(email, password);
+      await apiService.login(email, password);
+      const user = await apiService.getCurrentUser();
       setUser(user);
       toast.success('Login successful');
       navigate('/dashboard');
@@ -66,7 +85,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const register = async (name: string, email: string, password: string) => {
     setIsLoading(true);
     try {
-      const { user } = await apiService.register(name, email, password);
+      await apiService.register(name, email, password);
+      const user = await apiService.getCurrentUser();
       setUser(user);
       toast.success('Registration successful');
       navigate('/dashboard');
@@ -102,10 +122,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     setIsLoading(true);
     try {
-      // This would call an API endpoint in a real app
-      // For now with our mock API, we'll just update the local storage
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      
+      if (!authUser) {
+        throw new Error('Not authenticated');
+      }
+      
+      // Update the profile in Supabase
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          first_name: userData.name ? userData.name.split(' ')[0] : undefined,
+          last_name: userData.name ? userData.name.split(' ').slice(1).join(' ') : undefined,
+          plan: userData.plan
+        })
+        .eq('id', authUser.id);
+        
+      if (error) throw error;
+      
+      // Update local user state
       const updatedUser = { ...user, ...userData };
-      localStorage.setItem('user', JSON.stringify(updatedUser));
       setUser(updatedUser);
       toast.success('Profile updated successfully');
     } catch (error) {
