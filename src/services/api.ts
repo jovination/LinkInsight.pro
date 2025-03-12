@@ -1,4 +1,3 @@
-
 // Enhanced API service with mock functionality that simulates a backend
 
 import { toast } from "sonner";
@@ -9,17 +8,17 @@ const BASE_URL = "https://api.example.com";
 // Simulated database for development
 const mockDatabase = {
   links: [
-    { id: '1', url: 'https://example.com/homepage', status: 'healthy', responseTime: '0.8s', lastChecked: '2 hours ago' },
-    { id: '2', url: 'https://example.com/about', status: 'healthy', responseTime: '1.2s', lastChecked: '2 hours ago' },
-    { id: '3', url: 'https://example.com/products', status: 'broken', responseTime: '-', lastChecked: '2 hours ago' },
-    { id: '4', url: 'https://example.com/blog', status: 'healthy', responseTime: '1.5s', lastChecked: '2 hours ago' },
-    { id: '5', url: 'https://example.com/contact', status: 'healthy', responseTime: '0.9s', lastChecked: '2 hours ago' },
-    { id: '6', url: 'https://example.com/services', status: 'healthy', responseTime: '1.1s', lastChecked: '3 hours ago' },
-    { id: '7', url: 'https://example.com/resources', status: 'redirected', responseTime: '1.7s', lastChecked: '3 hours ago' },
-    { id: '8', url: 'https://example.com/support', status: 'healthy', responseTime: '0.7s', lastChecked: '3 hours ago' },
+    { id: '1', url: 'https://example.com/homepage', status: 'healthy' as const, responseTime: '0.8s', lastChecked: '2 hours ago' },
+    { id: '2', url: 'https://example.com/about', status: 'healthy' as const, responseTime: '1.2s', lastChecked: '2 hours ago' },
+    { id: '3', url: 'https://example.com/products', status: 'broken' as const, responseTime: '-', lastChecked: '2 hours ago' },
+    { id: '4', url: 'https://example.com/blog', status: 'healthy' as const, responseTime: '1.5s', lastChecked: '2 hours ago' },
+    { id: '5', url: 'https://example.com/contact', status: 'healthy' as const, responseTime: '0.9s', lastChecked: '2 hours ago' },
+    { id: '6', url: 'https://example.com/services', status: 'healthy' as const, responseTime: '1.1s', lastChecked: '3 hours ago' },
+    { id: '7', url: 'https://example.com/resources', status: 'redirected' as const, responseTime: '1.7s', lastChecked: '3 hours ago' },
+    { id: '8', url: 'https://example.com/support', status: 'healthy' as const, responseTime: '0.7s', lastChecked: '3 hours ago' },
   ],
   users: [
-    { id: '1', name: 'Test User', email: 'test@example.com', plan: 'pro' }
+    { id: '1', name: 'Test User', email: 'test@example.com', plan: 'pro' as const }
   ],
   notifications: [
     { id: '1', message: 'Your subscription will renew in 7 days', read: false, date: '2023-07-01T10:30:00Z' },
@@ -92,6 +91,22 @@ export interface UserData {
   plan: 'free' | 'pro' | 'enterprise';
 }
 
+// New interfaces for the link analysis feature
+export interface LinkAnalysisResult {
+  url: string;
+  status: "healthy" | "broken" | "redirected";
+  responseTime?: string;
+  lastChecked: string;
+  statusCode?: number;
+  title?: string;
+  metadata?: {
+    description?: string;
+    keywords?: string[];
+  };
+  brokenLinks?: string[];
+  redirectLinks?: string[];
+}
+
 // Utility to simulate API latency
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -124,11 +139,11 @@ export const apiService = {
     }
     
     // Create new user
-    const newUser = { 
+    const newUser: UserData = { 
       id: `${mockDatabase.users.length + 1}`,
       name,
       email,
-      plan: 'free' as const
+      plan: 'free'
     };
     
     mockDatabase.users.push(newUser);
@@ -165,7 +180,7 @@ export const apiService = {
   // Link management
   getLinks: async (): Promise<LinkData[]> => {
     await delay(800);
-    return [...mockDatabase.links];
+    return [...mockDatabase.links] as LinkData[];
   },
   
   createLink: async (url: string): Promise<LinkData> => {
@@ -183,7 +198,7 @@ export const apiService = {
     const randomStatus = statuses[Math.floor(Math.random() * 3)];
     const responseTime = randomStatus !== 'broken' ? `${(Math.random() * 2 + 0.5).toFixed(1)}s` : '-';
     
-    const newLink = {
+    const newLink: LinkData = {
       id: `${mockDatabase.links.length + 1}`,
       url,
       status: randomStatus,
@@ -191,7 +206,7 @@ export const apiService = {
       lastChecked: 'just now'
     };
     
-    mockDatabase.links.push(newLink);
+    mockDatabase.links.push(newLink as any);
     
     // Update stats
     if (randomStatus === 'healthy') mockDatabase.stats.healthyLinks++;
@@ -251,16 +266,16 @@ export const apiService = {
         if (newStatus === 'redirected') mockDatabase.stats.redirectedLinks++;
       }
       
-      link.status = newStatus;
+      link.status = newStatus as "healthy" | "broken" | "redirected";
     }
     
     link.responseTime = link.status !== 'broken' ? `${(Math.random() * 2 + 0.5).toFixed(1)}s` : '-';
     link.lastChecked = 'just now';
     
     // Update in mock DB
-    mockDatabase.links[linkIndex] = link;
+    mockDatabase.links[linkIndex] = link as any;
     
-    return link;
+    return link as LinkData;
   },
   
   // Dashboard data
@@ -312,37 +327,90 @@ export const apiService = {
     toast.success('Payment method updated successfully');
   },
   
-  // Bulk link operations
-  bulkCheckLinks: async (ids: string[]): Promise<LinkData[]> => {
-    await delay(2000); // Bulk operations take longer
+  // New advanced link analysis features
+  analyzeLink: async (url: string): Promise<LinkAnalysisResult> => {
+    await delay(1500);
     
-    if (!ids.length) {
-      throw { message: 'No links provided', status: 400 };
+    // Validate URL
+    try {
+      new URL(url);
+    } catch {
+      throw { message: 'Invalid URL format', status: 400 };
     }
     
-    const updatedLinks: LinkData[] = [];
+    // Simulate link analysis with more detailed results
+    const statuses: ("healthy" | "broken" | "redirected")[] = ['healthy', 'broken', 'redirected'];
+    const randomStatus = statuses[Math.floor(Math.random() * 3)];
+    const responseTime = randomStatus !== 'broken' ? `${(Math.random() * 2 + 0.5).toFixed(1)}s` : '-';
+    const statusCode = randomStatus === 'healthy' ? 200 : 
+                        randomStatus === 'broken' ? 404 : 301;
     
-    for (const id of ids) {
-      const linkIndex = mockDatabase.links.findIndex(link => link.id === id);
+    // Generate mock metadata based on URL
+    const urlParts = url.split('/');
+    const pageName = urlParts[urlParts.length - 1] || 'homepage';
+    
+    const mockTitle = `${pageName.charAt(0).toUpperCase() + pageName.slice(1)} Page`;
+    const mockDescription = `This is the ${pageName} page of the website.`;
+    
+    // Create mock broken and redirect links for demonstration
+    let brokenLinks: string[] = [];
+    let redirectLinks: string[] = [];
+    
+    if (Math.random() > 0.7) {
+      brokenLinks = [
+        `${url}/images/missing.jpg`,
+        `${url}/resources/document.pdf`
+      ];
       
-      if (linkIndex !== -1) {
-        const link = {...mockDatabase.links[linkIndex]};
-        
-        // Similar logic to checkLink, but simplified
-        if (Math.random() > 0.7) {
-          const statuses: ("healthy" | "broken" | "redirected")[] = ['healthy', 'broken', 'redirected'];
-          link.status = statuses[Math.floor(Math.random() * 3)];
-        }
-        
-        link.responseTime = link.status !== 'broken' ? `${(Math.random() * 2 + 0.5).toFixed(1)}s` : '-';
-        link.lastChecked = 'just now';
-        
-        mockDatabase.links[linkIndex] = link;
-        updatedLinks.push(link);
+      redirectLinks = [
+        `${url}/old-page.html`,
+        `${url}/deprecated/resource.html`
+      ];
+    }
+    
+    return {
+      url,
+      status: randomStatus,
+      responseTime,
+      lastChecked: 'just now',
+      statusCode,
+      title: mockTitle,
+      metadata: {
+        description: mockDescription,
+        keywords: [pageName, 'website', 'example']
+      },
+      brokenLinks,
+      redirectLinks
+    };
+  },
+  
+  // Bulk operations
+  bulkAnalyzeLinks: async (urls: string[]): Promise<LinkAnalysisResult[]> => {
+    await delay(2000);
+    
+    if (!urls.length) {
+      throw { message: 'No URLs provided', status: 400 };
+    }
+    
+    const results: LinkAnalysisResult[] = [];
+    
+    for (const url of urls) {
+      try {
+        new URL(url);
+        const result = await apiService.analyzeLink(url);
+        results.push(result);
+      } catch (error) {
+        results.push({
+          url,
+          status: 'broken',
+          lastChecked: 'just now',
+          statusCode: 400,
+          title: 'Invalid URL'
+        });
       }
     }
     
-    return updatedLinks;
+    return results;
   }
 };
 
