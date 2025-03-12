@@ -11,6 +11,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  updateUserProfile?: (userData: Partial<UserData>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,6 +27,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const currentUser = apiService.getCurrentUser();
         setUser(currentUser);
+        
+        // If on login or signup page but already authenticated, redirect to dashboard
+        const path = window.location.pathname;
+        if (currentUser && (path === '/login' || path === '/signup')) {
+          navigate('/dashboard');
+        }
       } catch (error) {
         console.error('Auth check failed:', error);
         // Clear potentially corrupted auth data
@@ -37,7 +44,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     checkAuth();
-  }, []);
+  }, [navigate]);
 
   // Login handler
   const login = async (email: string, password: string) => {
@@ -86,6 +93,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  // Update user profile
+  const updateUserProfile = async (userData: Partial<UserData>) => {
+    if (!user) {
+      toast.error('You must be logged in to update your profile');
+      return;
+    }
+    
+    setIsLoading(true);
+    try {
+      // This would call an API endpoint in a real app
+      // For now with our mock API, we'll just update the local storage
+      const updatedUser = { ...user, ...userData };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+      toast.success('Profile updated successfully');
+    } catch (error) {
+      toast.error('Failed to update profile: ' + (error as Error).message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -95,6 +124,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         login,
         register,
         logout,
+        updateUserProfile,
       }}
     >
       {children}
