@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,7 +20,7 @@ import {
   Zap,
   Server,
   Link2,
-  Line,
+  LineChart,
   BarChart,
   FileText,
   Image
@@ -67,7 +66,6 @@ const SeoAnalyzer = () => {
       return;
     }
     
-    // Validate URL format
     try {
       new URL(url);
     } catch (error) {
@@ -75,7 +73,6 @@ const SeoAnalyzer = () => {
       return;
     }
     
-    // Run appropriate analysis based on active tab
     if (activeTab === 'seo') {
       seoMutation.mutate(url);
     } else if (activeTab === 'performance') {
@@ -165,7 +162,6 @@ const SeoAnalyzer = () => {
           <TabsTrigger value="backlinks">Backlinks</TabsTrigger>
         </TabsList>
 
-        {/* SEO Analysis Tab */}
         <TabsContent value="seo" className="space-y-4">
           {seoMutation.isPending ? (
             <Card>
@@ -194,8 +190,7 @@ const SeoAnalyzer = () => {
                 <CardContent>
                   <Progress 
                     value={seoMutation.data.score} 
-                    className="h-2 mt-2"
-                    indicatorClassName={getProgressColor(seoMutation.data.score)}
+                    className={`h-2 mt-2 ${getProgressColor(seoMutation.data.score)}`}
                   />
                 </CardContent>
               </Card>
@@ -210,7 +205,7 @@ const SeoAnalyzer = () => {
                 <CardContent>
                   <div className="space-y-4">
                     {seoMutation.data.issues.map((issue, index) => (
-                      <Alert key={index} variant="outline" className="border-l-4 border-l-primary">
+                      <Alert key={index} className="border-l-4 border-l-primary">
                         <div className="flex items-center gap-2">
                           {getIssueIcon(issue.type)}
                           <AlertTitle className="text-sm font-medium">
@@ -253,7 +248,6 @@ const SeoAnalyzer = () => {
           ) : null}
         </TabsContent>
 
-        {/* Performance Tab */}
         <TabsContent value="performance" className="space-y-4">
           {performanceMutation.isPending ? (
             <Card>
@@ -283,8 +277,7 @@ const SeoAnalyzer = () => {
                 <CardContent>
                   <Progress 
                     value={performanceMutation.data.pageSpeed}
-                    className="h-2 mt-2"
-                    indicatorClassName={getProgressColor(performanceMutation.data.pageSpeed)}
+                    className={`h-2 mt-2 ${getProgressColor(performanceMutation.data.pageSpeed)}`}
                   />
                 </CardContent>
               </Card>
@@ -317,7 +310,7 @@ const SeoAnalyzer = () => {
                       </div>
                     </div>
                     <div className="flex items-center p-3 border rounded-lg">
-                      <Line className="h-6 w-6 mr-3 text-primary" />
+                      <LineChart className="h-6 w-6 mr-3 text-primary" />
                       <div>
                         <p className="text-sm font-medium">Cumulative Layout Shift</p>
                         <p className="text-xl font-bold">{performanceMutation.data.cumulativeLayoutShift}</p>
@@ -337,7 +330,6 @@ const SeoAnalyzer = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="h-48 mt-2">
-                      {/* Render chart here - mockup for now */}
                       <div className="w-full h-full flex items-center justify-center bg-muted/20 rounded-md">
                         <BarChart className="h-12 w-12 text-muted" />
                         <span className="ml-2 text-muted-foreground">Performance History Chart</span>
@@ -350,7 +342,6 @@ const SeoAnalyzer = () => {
           ) : null}
         </TabsContent>
 
-        {/* Keywords Tab */}
         <TabsContent value="keywords" className="space-y-4">
           {keywordMutation.isPending ? (
             <Card>
@@ -387,7 +378,6 @@ const SeoAnalyzer = () => {
           ) : null}
         </TabsContent>
 
-        {/* Backlinks Tab */}
         <TabsContent value="backlinks" className="space-y-4">
           {backlinkssMutation.isPending ? (
             <Card>

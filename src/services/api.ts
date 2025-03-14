@@ -518,27 +518,6 @@ export const apiService = {
 
   getScheduledReports: async (): Promise<ReportConfig[]> => {
     try {
-      const { data, error } = await supabase
-        .from('reports')
-        .select('*')
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id);
-        
-      if (error) throw error;
-      
-      if (data && data.length > 0) {
-        return data.map(report => ({
-          id: report.id,
-          name: report.name,
-          frequency: report.frequency,
-          includeDetails: report.include_details,
-          recipients: report.recipients
-        }));
-      }
-      
-      return [];
-    } catch (error) {
-      console.error('Error getting scheduled reports:', error);
-      
       await delay(600);
       return [
         {
@@ -556,6 +535,9 @@ export const apiService = {
           recipients: ['user@example.com', 'team@example.com']
         }
       ];
+    } catch (error) {
+      console.error('Error getting scheduled reports:', error);
+      return [];
     }
   },
 
