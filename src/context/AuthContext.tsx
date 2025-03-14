@@ -26,12 +26,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const currentUser = await apiService.getCurrentUser();
-        setUser(currentUser);
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) throw error;
+        
+        if (session) {
+          // Get current user data
+          const { data: authUser } = await supabase.auth.getUser();
+          
+          if (authUser.user) {
+            // Get profile data
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', authUser.user.id)
+              .single();
+              
+            const userData: UserData = {
+              id: authUser.user.id,
+              email: authUser.user.email || '',
+              name: profileData ? `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() : '',
+              plan: (profileData && profileData.plan as 'free' | 'pro' | 'enterprise') || 'free',
+              avatar: profileData?.avatar_url || null
+            };
+            
+            setUser(userData);
+          }
+        }
         
         // If on login or signup page but already authenticated, redirect to dashboard
         const path = window.location.pathname;
-        if (currentUser && (path === '/login' || path === '/signup')) {
+        if (session && (path === '/login' || path === '/signup')) {
           navigate('/dashboard');
         }
       } catch (error) {
@@ -50,8 +75,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          const user = await apiService.getCurrentUser();
-          setUser(user);
+          if (session) {
+            const { data: { user: authUser } } = await supabase.auth.getUser();
+            
+            if (authUser) {
+              // Get profile data
+              const { data: profileData } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', authUser.id)
+                .single();
+                
+              const userData: UserData = {
+                id: authUser.id,
+                email: authUser.email || '',
+                name: profileData ? `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() : '',
+                plan: (profileData && profileData.plan as 'free' | 'pro' | 'enterprise') || 'free',
+                avatar: profileData?.avatar_url || null
+              };
+              
+              setUser(userData);
+            }
+          }
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
         }
@@ -68,9 +113,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      await apiService.login(email, password);
-      const user = await apiService.getCurrentUser();
-      setUser(user);
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (error) throw error;
+      
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      
+      if (authUser) {
+        // Get profile data
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', authUser.id)
+          .single();
+          
+        const userData: UserData = {
+          id: authUser.id,
+          email: authUser.email || '',
+          name: profileData ? `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() : '',
+          plan: (profileData && profileData.plan as 'free' | 'pro' | 'enterprise') || 'free',
+          avatar: profileData?.avatar_url || null
+        };
+        
+        setUser(userData);
+      }
+      
       toast.success('Login successful');
       navigate('/dashboard');
     } catch (error) {
@@ -85,9 +155,52 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const register = async (name: string, email: string, password: string) => {
     setIsLoading(true);
     try {
-      await apiService.register(name, email, password);
-      const user = await apiService.getCurrentUser();
-      setUser(user);
+      // Sign up the user
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            // Include additional data needed for profile creation
+            name
+          }
+        }
+      });
+      
+      if (error) throw error;
+      
+      // Get the authenticated user
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      
+      if (authUser) {
+        // Split name into first and last name
+        const nameParts = name.trim().split(' ');
+        const firstName = nameParts[0];
+        const lastName = nameParts.slice(1).join(' ');
+        
+        // Update the profile with first and last name
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            first_name: firstName,
+            last_name: lastName
+          })
+          .eq('id', authUser.id);
+          
+        if (profileError) throw profileError;
+        
+        // Create user data object
+        const userData: UserData = {
+          id: authUser.id,
+          email: authUser.email || '',
+          name: name.trim(),
+          plan: 'free',
+          avatar: null
+        };
+        
+        setUser(userData);
+      }
+      
       toast.success('Registration successful');
       navigate('/dashboard');
     } catch (error) {
@@ -102,7 +215,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = async () => {
     setIsLoading(true);
     try {
-      await apiService.logout();
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) throw error;
+      
       setUser(null);
       toast.success('Logged out successfully');
       navigate('/login');
@@ -128,13 +244,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         throw new Error('Not authenticated');
       }
       
+      // Split name into first and last name if provided
+      let firstName, lastName;
+      if (userData.name) {
+        const nameParts = userData.name.trim().split(' ');
+        firstName = nameParts[0];
+        lastName = nameParts.slice(1).join(' ');
+      }
+      
       // Update the profile in Supabase
       const { error } = await supabase
         .from('profiles')
         .update({
-          first_name: userData.name ? userData.name.split(' ')[0] : undefined,
-          last_name: userData.name ? userData.name.split(' ').slice(1).join(' ') : undefined,
-          plan: userData.plan
+          first_name: firstName,
+          last_name: lastName,
+          plan: userData.plan,
+          avatar_url: userData.avatar
         })
         .eq('id', authUser.id);
         
