@@ -1,2 +1,20 @@
 
 project_id = "wwrujavctcxdrlpneiru"
+
+[functions.analyze-link]
+verify_jwt = false
+
+[functions.bulk-analyze]
+verify_jwt = false
+
+[functions.generate-seo-report]
+verify_jwt = false
+
+[functions.analyze-keywords]
+verify_jwt = false
+
+[functions.get-backlinks]
+verify_jwt = false
+
+[functions.get-performance]
+verify_jwt = false

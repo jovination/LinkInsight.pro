@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface LinkData {
@@ -22,6 +21,18 @@ export interface LinkAnalysisResult {
   metadata?: {
     description?: string;
     keywords?: string[];
+    ogTags?: {
+      title?: string;
+      description?: string;
+      image?: string;
+      type?: string;
+    };
+    canonical?: string;
+    headingStructure?: {
+      h1Count: number;
+      h2Count: number;
+      h3Count: number;
+    };
   };
   brokenLinks?: string[];
   redirectLinks?: string[];
@@ -30,6 +41,18 @@ export interface LinkAnalysisResult {
     firstContentfulPaint?: string;
     largestContentfulPaint?: string;
     timeToInteractive?: string;
+    totalBlockingTime?: string;
+    cumulativeLayoutShift?: string;
+  };
+  seoScore?: number;
+  wordCount?: number;
+  linkCount?: {
+    internal: number;
+    external: number;
+  };
+  imageTags?: {
+    withAlt: number;
+    withoutAlt: number;
   };
 }
 
@@ -87,6 +110,37 @@ export interface ReportConfig {
   frequency: 'daily' | 'weekly' | 'monthly';
   includeDetails: boolean;
   recipients: string[];
+}
+
+export interface SeoReport {
+  id: string;
+  url: string;
+  date: string;
+  score: number;
+  issues: SeoIssue[];
+  recommendations: string[];
+}
+
+export interface SeoIssue {
+  type: 'critical' | 'warning' | 'info';
+  description: string;
+  impact: 'high' | 'medium' | 'low';
+  location?: string;
+}
+
+export interface PerformanceMetrics {
+  url: string;
+  date: string;
+  pageSpeed: number;
+  firstContentfulPaint: string;
+  largestContentfulPaint: string;
+  timeToInteractive: string;
+  totalBlockingTime: string;
+  cumulativeLayoutShift: string;
+  history?: {
+    date: string;
+    pageSpeed: number;
+  }[];
 }
 
 const mockDb = {
@@ -286,7 +340,19 @@ export const apiService = {
         title: 'Page Title',
         metadata: {
           description: 'Example page description for SEO purposes.',
-          keywords: ['example', 'seo', 'keywords']
+          keywords: ['example', 'seo', 'keywords'],
+          ogTags: {
+            title: 'OG Title',
+            description: 'OG Description',
+            image: 'https://example.com/image.jpg',
+            type: 'website'
+          },
+          canonical: 'https://example.com/canonical',
+          headingStructure: {
+            h1Count: Math.floor(Math.random() * 3),
+            h2Count: Math.floor(Math.random() * 10),
+            h3Count: Math.floor(Math.random() * 15)
+          }
         },
         brokenLinks: status === 'broken' ? ['https://example.com/broken1', 'https://example.com/broken2'] : [],
         redirectLinks: [],
@@ -294,7 +360,19 @@ export const apiService = {
           score: Math.round(Math.random() * 100),
           firstContentfulPaint: (Math.random() * 2 + 0.5).toFixed(1) + 's',
           largestContentfulPaint: (Math.random() * 3 + 1).toFixed(1) + 's',
-          timeToInteractive: (Math.random() * 4 + 2).toFixed(1) + 's'
+          timeToInteractive: (Math.random() * 4 + 2).toFixed(1) + 's',
+          totalBlockingTime: (Math.random() * 0.5).toFixed(1) + 's',
+          cumulativeLayoutShift: (Math.random() * 0.1).toFixed(2)
+        },
+        seoScore: Math.round(Math.random() * 100),
+        wordCount: Math.floor(Math.random() * 2000) + 500,
+        linkCount: {
+          internal: Math.floor(Math.random() * 30) + 5,
+          external: Math.floor(Math.random() * 20) + 2
+        },
+        imageTags: {
+          withAlt: Math.floor(Math.random() * 15) + 5,
+          withoutAlt: Math.floor(Math.random() * 5)
         }
       };
     }
@@ -438,6 +516,49 @@ export const apiService = {
     };
   },
 
+  getScheduledReports: async (): Promise<ReportConfig[]> => {
+    try {
+      const { data, error } = await supabase
+        .from('reports')
+        .select('*')
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id);
+        
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        return data.map(report => ({
+          id: report.id,
+          name: report.name,
+          frequency: report.frequency,
+          includeDetails: report.include_details,
+          recipients: report.recipients
+        }));
+      }
+      
+      return [];
+    } catch (error) {
+      console.error('Error getting scheduled reports:', error);
+      
+      await delay(600);
+      return [
+        {
+          id: 'report-1',
+          name: 'Weekly Link Health Check',
+          frequency: 'weekly',
+          includeDetails: true,
+          recipients: ['user@example.com']
+        },
+        {
+          id: 'report-2',
+          name: 'Monthly SEO Analysis',
+          frequency: 'monthly',
+          includeDetails: true,
+          recipients: ['user@example.com', 'team@example.com']
+        }
+      ];
+    }
+  },
+
   getCurrentUser: async (): Promise<UserData | null> => {
     try {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -542,5 +663,180 @@ export const apiService = {
         cumulativeLayoutShift: (Math.random() * 0.1).toFixed(2)
       }
     };
+  },
+
+  generateSeoReport: async (url: string): Promise<SeoReport> => {
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-seo-report', {
+        body: { url }
+      });
+      
+      if (error) throw error;
+      
+      return data;
+    } catch (error) {
+      console.error('Error generating SEO report:', error);
+      
+      await delay(1800);
+      
+      const issueTypes = ['critical', 'warning', 'info'] as const;
+      const impactLevels = ['high', 'medium', 'low'] as const;
+      
+      const mockIssues: SeoIssue[] = [
+        {
+          type: 'critical',
+          description: 'Missing meta description',
+          impact: 'high',
+          location: '<head>'
+        },
+        {
+          type: 'warning',
+          description: 'Images missing alt text',
+          impact: 'medium',
+          location: 'Multiple images'
+        },
+        {
+          type: Math.random() > 0.5 ? 'warning' : 'info',
+          description: 'Duplicate content detected',
+          impact: Math.random() > 0.5 ? 'medium' : 'low',
+          location: 'Multiple pages'
+        },
+        {
+          type: 'info',
+          description: 'Consider adding more internal links',
+          impact: 'low'
+        },
+        {
+          type: Math.random() > 0.7 ? 'critical' : 'warning',
+          description: 'Slow page load time',
+          impact: 'high',
+          location: 'Page resources'
+        }
+      ];
+      
+      const selectedIssues = mockIssues.filter(() => Math.random() > 0.3);
+      
+      const recommendations = [
+        'Add a meta description that is between 140-160 characters',
+        'Ensure all images have descriptive alt text',
+        'Improve page load time by optimizing images and scripts',
+        'Add more internal links to improve site structure',
+        'Use a canonical URL to prevent duplicate content issues'
+      ].filter(() => Math.random() > 0.3);
+      
+      return {
+        id: `report-${Date.now()}`,
+        url,
+        date: new Date().toISOString(),
+        score: Math.round(Math.random() * 100),
+        issues: selectedIssues,
+        recommendations
+      };
+    }
+  },
+
+  getPerformanceMetrics: async (url: string): Promise<PerformanceMetrics> => {
+    try {
+      const { data, error } = await supabase.functions.invoke('get-performance', {
+        body: { url }
+      });
+      
+      if (error) throw error;
+      
+      return data;
+    } catch (error) {
+      console.error('Error getting performance metrics:', error);
+      
+      await delay(1200);
+      
+      const historyEntries = Array.from({ length: 30 }, (_, i) => {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        
+        return {
+          date: date.toISOString().split('T')[0],
+          pageSpeed: Math.round(Math.random() * 40 + 60)
+        };
+      });
+      
+      return {
+        url,
+        date: new Date().toISOString(),
+        pageSpeed: Math.round(Math.random() * 40 + 60),
+        firstContentfulPaint: (Math.random() * 2 + 0.5).toFixed(1) + 's',
+        largestContentfulPaint: (Math.random() * 3 + 1).toFixed(1) + 's',
+        timeToInteractive: (Math.random() * 4 + 2).toFixed(1) + 's',
+        totalBlockingTime: (Math.random() * 0.5).toFixed(1) + 's',
+        cumulativeLayoutShift: (Math.random() * 0.1).toFixed(2),
+        history: historyEntries
+      };
+    }
+  },
+
+  getKeywordDensity: async (url: string): Promise<Record<string, number>> => {
+    try {
+      const { data, error } = await supabase.functions.invoke('analyze-keywords', {
+        body: { url }
+      });
+      
+      if (error) throw error;
+      
+      return data;
+    } catch (error) {
+      console.error('Error analyzing keywords:', error);
+      
+      await delay(1000);
+      
+      const keywords = [
+        'website', 'example', 'content', 'page', 'link', 'seo', 
+        'optimization', 'performance', 'analytics', 'tools', 
+        'marketing', 'search', 'engine', 'monitoring'
+      ];
+      
+      const result: Record<string, number> = {};
+      
+      keywords.sort(() => Math.random() - 0.5).slice(0, 8).forEach(keyword => {
+        result[keyword] = parseFloat((Math.random() * 3 + 0.5).toFixed(2));
+      });
+      
+      return result;
+    }
+  },
+
+  getBacklinks: async (url: string): Promise<{ source: string; anchor: string; date: string }[]> => {
+    try {
+      const { data, error } = await supabase.functions.invoke('get-backlinks', {
+        body: { url }
+      });
+      
+      if (error) throw error;
+      
+      return data;
+    } catch (error) {
+      console.error('Error getting backlinks:', error);
+      
+      await delay(1200);
+      
+      const domains = [
+        'example.org', 'blog.com', 'news.net', 'reference.info',
+        'directory.com', 'partner.co', 'industry.org', 'review.site'
+      ];
+      
+      const anchors = [
+        'click here', 'useful resource', 'more information', 'read more',
+        'great article', 'helpful guide', 'check this out', 'learn more'
+      ];
+      
+      return Array.from({ length: Math.floor(Math.random() * 10) + 5 }, () => {
+        const date = new Date();
+        date.setDate(date.getDate() - Math.floor(Math.random() * 60));
+        
+        return {
+          source: `https://${domains[Math.floor(Math.random() * domains.length)]}`,
+          anchor: anchors[Math.floor(Math.random() * anchors.length)],
+          date: date.toISOString().split('T')[0]
+        };
+      });
+    }
   }
 };
