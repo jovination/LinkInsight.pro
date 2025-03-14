@@ -12,12 +12,14 @@ import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import ForgotPassword from "./pages/ForgotPassword";
 import Dashboard from "./pages/Dashboard";
+import DashboardIndex from "./pages/DashboardIndex";
 import LinksPage from "./pages/LinksPage";
 import ReportsPage from "./pages/ReportsPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import BillingPage from "./pages/BillingPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import SettingsPage from "./pages/SettingsPage";
+import SeoPage from "./pages/SeoPage";
 import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
 import DashboardNotFound from "./pages/DashboardNotFound";
@@ -50,10 +52,20 @@ const App = () => (
               {/* Protected Dashboard Routes */}
               <Route path="/dashboard" element={
                 <ProtectedRoute>
+                  <DashboardIndex />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard/overview" element={
+                <ProtectedRoute>
                   <Dashboard />
                 </ProtectedRoute>
               } />
               <Route path="/dashboard/links" element={
+                <ProtectedRoute>
+                  <LinksPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/links" element={
                 <ProtectedRoute>
                   <LinksPage />
                 </ProtectedRoute>
@@ -63,9 +75,29 @@ const App = () => (
                   <ReportsPage />
                 </ProtectedRoute>
               } />
+              <Route path="/reports" element={
+                <ProtectedRoute>
+                  <ReportsPage />
+                </ProtectedRoute>
+              } />
               <Route path="/dashboard/analytics" element={
                 <ProtectedRoute>
                   <AnalyticsPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/analytics" element={
+                <ProtectedRoute>
+                  <AnalyticsPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard/seo" element={
+                <ProtectedRoute>
+                  <SeoPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/seo" element={
+                <ProtectedRoute>
+                  <SeoPage />
                 </ProtectedRoute>
               } />
               <Route path="/dashboard/billing" element={
