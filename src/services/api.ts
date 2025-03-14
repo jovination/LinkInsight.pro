@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export interface LinkData {
@@ -463,7 +464,7 @@ export const apiService = {
           : user.email?.split('@')[0] || 'User',
         email: user.email || '',
         plan: (profile?.plan as 'free' | 'pro' | 'enterprise') || 'free',
-        avatar: profile?.avatar || null
+        avatar: profile?.avatar_url || null
       };
     } catch (error) {
       console.error('Failed to get current user:', error);
