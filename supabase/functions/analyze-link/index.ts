@@ -71,6 +71,21 @@ serve(async (req) => {
       title = 'Example Page Title';
     }
 
+    // Enhanced analysis with more data
+    const metadata = status !== 'broken' ? {
+      description: 'This is a meta description of the page used for SEO purposes.',
+      keywords: ['keyword1', 'keyword2', 'keyword3', 'keyword4']
+    } : null;
+
+    // Simulate finding broken and redirected links on the page
+    const brokenLinks = status !== 'broken' && Math.random() > 0.7 
+      ? [`${url}/broken-link-1`, `${url}/broken-link-2`] 
+      : [];
+      
+    const redirectLinks = status !== 'broken' && Math.random() > 0.8
+      ? [`${url}/redirect-link-1`]
+      : [];
+
     // Create a response with the analysis results
     const result = {
       url,
@@ -80,7 +95,16 @@ serve(async (req) => {
       title,
       errors: status === 'broken' ? ['Page not found'] : [],
       redirectUrl: status === 'redirected' ? url.replace('http:', 'https:') : null,
-      analyzed_at: new Date().toISOString()
+      analyzed_at: new Date().toISOString(),
+      metadata,
+      brokenLinks,
+      redirectLinks,
+      pageSpeed: status !== 'broken' ? {
+        score: Math.floor(Math.random() * 100),
+        firstContentfulPaint: (Math.random() * 1.5 + 0.5).toFixed(2) + 's',
+        largestContentfulPaint: (Math.random() * 2 + 1).toFixed(2) + 's',
+        timeToInteractive: (Math.random() * 3 + 1.5).toFixed(2) + 's'
+      } : null
     };
 
     // If authenticated, could save the result to the database

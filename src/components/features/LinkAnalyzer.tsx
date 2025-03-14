@@ -20,7 +20,9 @@ import {
   Info,
   Clock,
   FileDown,
-  Trash
+  Trash,
+  Download,
+  BarChart
 } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { apiService, LinkAnalysisResult } from '@/services/api';
@@ -132,6 +134,20 @@ export const LinkAnalyzer = ({ onAnalysisComplete }: LinkAnalyzerProps) => {
     toast.success(`Downloaded results as ${filename}`);
   };
 
+  const handleExport = (format: 'csv' | 'pdf') => {
+    toast.loading(`Exporting data as ${format.toUpperCase()}...`);
+    
+    apiService.exportLinks(format)
+      .then(url => {
+        toast.success(`Export complete!`);
+        // In a real app, this would redirect to download the file
+        // window.location.href = url;
+      })
+      .catch(error => {
+        toast.error(`Export failed: ${error.message}`);
+      });
+  };
+
   const handleCheckAnother = () => {
     if (analyzeMode === 'single') {
       setUrl('');
@@ -224,21 +240,43 @@ export const LinkAnalyzer = ({ onAnalysisComplete }: LinkAnalyzerProps) => {
           </div>
           <div className="flex items-center gap-2">
             {getStatusBadge(result.status)}
-            <Button 
-              variant="outline" 
-              size="icon" 
-              className="h-8 w-8 rounded-lg border-primary/10"
-              onClick={handleCopy}
-            >
-              <Copy className="h-4 w-4" />
-            </Button>
+            <div className="flex space-x-1">
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="h-8 w-8 rounded-lg border-primary/10"
+                onClick={handleCopy}
+                title="Copy results"
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="h-8 w-8 rounded-lg border-primary/10"
+                onClick={handleDownload}
+                title="Download results"
+              >
+                <FileDown className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="h-8 w-8 rounded-lg border-primary/10"
+                onClick={() => handleExport('pdf')}
+                title="Export as PDF"
+              >
+                <Download className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
         
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-3 rounded-xl">
+          <TabsList className="grid w-full grid-cols-4 mb-3 rounded-xl">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="metadata">Metadata</TabsTrigger>
+            <TabsTrigger value="performance">Performance</TabsTrigger>
             <TabsTrigger value="links">Links</TabsTrigger>
           </TabsList>
           
@@ -320,6 +358,59 @@ export const LinkAnalyzer = ({ onAnalysisComplete }: LinkAnalyzerProps) => {
             )}
           </TabsContent>
           
+          <TabsContent value="performance" className="space-y-4">
+            {result.pageSpeed ? (
+              <>
+                <div className="mb-4">
+                  <h4 className="text-sm font-medium mb-2">Performance Score</h4>
+                  <div className="relative h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div 
+                      className={`absolute top-0 left-0 h-full ${
+                        result.pageSpeed.score > 89 ? 'bg-green-500' : 
+                        result.pageSpeed.score > 49 ? 'bg-amber-500' : 'bg-red-500'
+                      }`}
+                      style={{ width: `${result.pageSpeed.score}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between mt-1">
+                    <span className="text-xs text-muted-foreground">Poor</span>
+                    <span className="text-xs font-medium">{result.pageSpeed.score}/100</span>
+                    <span className="text-xs text-muted-foreground">Excellent</span>
+                  </div>
+                </div>
+                
+                <div className="grid md:grid-cols-3 gap-3">
+                  <div className="p-3 bg-primary/5 rounded-lg">
+                    <h5 className="text-xs text-muted-foreground">First Contentful Paint</h5>
+                    <p className="text-lg font-semibold">{result.pageSpeed.firstContentfulPaint}</p>
+                  </div>
+                  <div className="p-3 bg-primary/5 rounded-lg">
+                    <h5 className="text-xs text-muted-foreground">Largest Contentful Paint</h5>
+                    <p className="text-lg font-semibold">{result.pageSpeed.largestContentfulPaint}</p>
+                  </div>
+                  <div className="p-3 bg-primary/5 rounded-lg">
+                    <h5 className="text-xs text-muted-foreground">Time to Interactive</h5>
+                    <p className="text-lg font-semibold">{result.pageSpeed.timeToInteractive}</p>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="text-xs border-primary/10"
+                    onClick={() => window.open(`https://pagespeed.web.dev/report?url=${encodeURIComponent(result.url)}`, '_blank')}
+                  >
+                    <BarChart className="h-3 w-3 mr-1" />
+                    Full PageSpeed Report
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">No performance data available for this URL.</p>
+            )}
+          </TabsContent>
+          
           <TabsContent value="links" className="space-y-4">
             {(result.brokenLinks?.length || result.redirectLinks?.length) ? (
               <>
@@ -368,24 +459,44 @@ export const LinkAnalyzer = ({ onAnalysisComplete }: LinkAnalyzerProps) => {
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-medium">Analysis Results ({bulkResults.length} URLs)</h3>
           <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="icon" 
-              className="h-8 w-8 rounded-lg border-primary/10"
-              onClick={handleCopy}
-              title="Copy results to clipboard"
-            >
-              <Copy className="h-4 w-4" />
-            </Button>
-            <Button 
-              variant="outline" 
-              size="icon" 
-              className="h-8 w-8 rounded-lg border-primary/10"
-              onClick={handleDownload}
-              title="Download results as JSON"
-            >
-              <FileDown className="h-4 w-4" />
-            </Button>
+            <div className="flex space-x-1">
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="h-8 w-8 rounded-lg border-primary/10"
+                onClick={handleCopy}
+                title="Copy results to clipboard"
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="h-8 w-8 rounded-lg border-primary/10"
+                onClick={handleDownload}
+                title="Download results as JSON"
+              >
+                <FileDown className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-8 rounded-lg border-primary/10"
+                onClick={() => handleExport('csv')}
+                title="Export as CSV"
+              >
+                CSV
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-8 rounded-lg border-primary/10"
+                onClick={() => handleExport('pdf')}
+                title="Export as PDF"
+              >
+                PDF
+              </Button>
+            </div>
           </div>
         </div>
         

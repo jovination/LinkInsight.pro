@@ -18,6 +18,19 @@ export interface LinkAnalysisResult {
   title?: string;
   redirectUrl?: string;
   errors?: string[];
+  analyzed_at?: string;
+  metadata?: {
+    description?: string;
+    keywords?: string[];
+  };
+  brokenLinks?: string[];
+  redirectLinks?: string[];
+  pageSpeed?: {
+    score: number;
+    firstContentfulPaint?: string;
+    largestContentfulPaint?: string;
+    timeToInteractive?: string;
+  };
 }
 
 export interface NotificationData {
@@ -33,6 +46,9 @@ export interface DashboardStats {
   brokenLinks: number;
   avgLoadTime: string;
   healthScore: number;
+  totalScans?: number;
+  responseTime?: string;
+  issuesFixed?: number;
 }
 
 export interface InvoiceData {
@@ -41,6 +57,7 @@ export interface InvoiceData {
   amount: string;
   status: 'paid' | 'pending' | 'failed';
   downloadUrl: string;
+  description?: string;
 }
 
 export interface UserData {
@@ -49,6 +66,27 @@ export interface UserData {
   email: string;
   plan: 'free' | 'pro' | 'enterprise';
   // Add any other user fields here
+}
+
+export interface SubscriptionPlan {
+  id: string;
+  name: string;
+  price: number;
+  features: string[];
+  limits: {
+    linksPerMonth: number;
+    reportsPerMonth: number;
+    maxBulkLinks: number;
+    apiAccess: boolean;
+  };
+}
+
+export interface ReportConfig {
+  id: string;
+  name: string;
+  frequency: 'daily' | 'weekly' | 'monthly';
+  includeDetails: boolean;
+  recipients: string[];
 }
 
 // Mock database - use this as fallback when not connected to Supabase
@@ -76,9 +114,47 @@ const mockDb = {
     { id: '2', message: 'New feature released: Scheduled link checks', date: new Date(), read: true },
   ],
   invoices: [
-    { id: '1', date: '2023-04-01', amount: '$29.99', status: 'paid' as const, downloadUrl: '#' },
-    { id: '2', date: '2023-03-01', amount: '$29.99', status: 'paid' as const, downloadUrl: '#' },
-    { id: '3', date: '2023-02-01', amount: '$29.99', status: 'paid' as const, downloadUrl: '#' },
+    { id: '1', date: '2023-04-01', amount: '$29.99', status: 'paid' as const, downloadUrl: '#', description: 'Pro Plan - Monthly' },
+    { id: '2', date: '2023-03-01', amount: '$29.99', status: 'paid' as const, downloadUrl: '#', description: 'Pro Plan - Monthly' },
+    { id: '3', date: '2023-02-01', amount: '$29.99', status: 'paid' as const, downloadUrl: '#', description: 'Pro Plan - Monthly' },
+  ],
+  plans: [
+    {
+      id: 'free',
+      name: 'Free',
+      price: 0,
+      features: ['10 link checks per day', 'Basic link health monitoring', 'Email notifications'],
+      limits: {
+        linksPerMonth: 300,
+        reportsPerMonth: 1,
+        maxBulkLinks: 10,
+        apiAccess: false
+      }
+    },
+    {
+      id: 'pro',
+      name: 'Pro',
+      price: 29.99,
+      features: ['100 link checks per day', 'Advanced SEO metrics', 'Scheduled reports', 'API access'],
+      limits: {
+        linksPerMonth: 3000,
+        reportsPerMonth: 10,
+        maxBulkLinks: 100,
+        apiAccess: true
+      }
+    },
+    {
+      id: 'enterprise',
+      name: 'Enterprise',
+      price: 99.99,
+      features: ['Unlimited link checks', 'Custom integrations', 'Priority support', 'Team collaboration'],
+      limits: {
+        linksPerMonth: Infinity,
+        reportsPerMonth: Infinity,
+        maxBulkLinks: 1000,
+        apiAccess: true
+      }
+    }
   ]
 };
 
@@ -171,7 +247,10 @@ export const apiService = {
           healthyLinks,
           brokenLinks,
           avgLoadTime: avgTime,
-          healthScore: totalScore
+          healthScore: totalScore,
+          totalScans: links.length * 2,  // Mock value - would be actual scan count
+          responseTime: avgTime,
+          issuesFixed: brokenLinks > 0 ? Math.floor(brokenLinks / 2) : 0  // Mock value
         };
       }
     } catch (error) {
@@ -185,40 +264,91 @@ export const apiService = {
       brokenLinks: 5,
       avgLoadTime: '0.7s',
       healthScore: 95,
+      totalScans: 300,
+      responseTime: '0.7s',
+      issuesFixed: 25
     };
   },
 
   // Analyze a single link
   analyzeLink: async (url: string): Promise<LinkAnalysisResult> => {
-    await delay(1500); // Simulate API delay
-    
-    // This would call a backend API in production
-    // For now, return mocked data
-    const status = Math.random() > 0.2 ? 'healthy' : 'broken';
-    
-    const result: LinkAnalysisResult = {
-      url,
-      status: status as 'healthy' | 'broken' | 'redirected',
-      statusCode: status === 'healthy' ? 200 : 404,
-      responseTime: (Math.random() * 2).toFixed(2) + 's',
-      title: 'Page Title'
-    };
-    
-    return result;
+    try {
+      // Call the edge function
+      const { data, error } = await supabase.functions.invoke('analyze-link', {
+        body: { url }
+      });
+      
+      if (error) throw error;
+      
+      return data;
+    } catch (error) {
+      console.error('Error invoking analyze-link function:', error);
+      
+      // Fallback to mock data if the edge function fails
+      await delay(1500); // Simulate API delay
+      
+      const status = Math.random() > 0.2 ? 'healthy' : 'broken';
+      
+      return {
+        url,
+        status: status as 'healthy' | 'broken' | 'redirected',
+        statusCode: status === 'healthy' ? 200 : 404,
+        responseTime: (Math.random() * 2).toFixed(2) + 's',
+        title: 'Page Title',
+        metadata: {
+          description: 'Example page description for SEO purposes.',
+          keywords: ['example', 'seo', 'keywords']
+        },
+        brokenLinks: status === 'broken' ? ['https://example.com/broken1', 'https://example.com/broken2'] : [],
+        redirectLinks: [],
+        pageSpeed: {
+          score: Math.round(Math.random() * 100),
+          firstContentfulPaint: (Math.random() * 2 + 0.5).toFixed(1) + 's',
+          largestContentfulPaint: (Math.random() * 3 + 1).toFixed(1) + 's',
+          timeToInteractive: (Math.random() * 4 + 2).toFixed(1) + 's'
+        }
+      };
+    }
   },
   
   // Bulk analyze multiple links
   bulkAnalyzeLinks: async (urls: string[]): Promise<LinkAnalysisResult[]> => {
-    await delay(2000); // Simulate API delay
-    
-    // Mock results - in production, this would call a backend
-    return urls.map(url => ({
-      url,
-      status: Math.random() > 0.2 ? 'healthy' : 'broken' as 'healthy' | 'broken' | 'redirected',
-      statusCode: Math.random() > 0.2 ? 200 : 404,
-      responseTime: (Math.random() * 2).toFixed(2) + 's',
-      title: 'Page Title'
-    }));
+    try {
+      // Call the edge function
+      const { data, error } = await supabase.functions.invoke('bulk-analyze', {
+        body: { urls }
+      });
+      
+      if (error) throw error;
+      
+      return data;
+    } catch (error) {
+      console.error('Error invoking bulk-analyze function:', error);
+      
+      // Fallback to mock data if the edge function fails
+      await delay(2000); // Simulate API delay
+      
+      // Mock results - in production, this would call a backend
+      return urls.map(url => ({
+        url,
+        status: Math.random() > 0.2 ? 'healthy' : 'broken' as 'healthy' | 'broken' | 'redirected',
+        statusCode: Math.random() > 0.2 ? 200 : 404,
+        responseTime: (Math.random() * 2).toFixed(2) + 's',
+        title: 'Page Title',
+        metadata: {
+          description: 'Example page description for SEO purposes.',
+          keywords: ['example', 'seo', 'keywords']
+        },
+        brokenLinks: Math.random() > 0.7 ? ['https://example.com/broken1', 'https://example.com/broken2'] : [],
+        redirectLinks: Math.random() > 0.8 ? ['https://example.com/redirect1'] : [],
+        pageSpeed: {
+          score: Math.round(Math.random() * 100),
+          firstContentfulPaint: (Math.random() * 2 + 0.5).toFixed(1) + 's',
+          largestContentfulPaint: (Math.random() * 3 + 1).toFixed(1) + 's',
+          timeToInteractive: (Math.random() * 4 + 2).toFixed(1) + 's'
+        }
+      }));
+    }
   },
 
   checkLink: async (id: string): Promise<void> => {
@@ -311,6 +441,24 @@ export const apiService = {
     await delay(1000);
   },
 
+  getSubscriptionPlans: async (): Promise<SubscriptionPlan[]> => {
+    await delay(500);
+    return mockDb.plans;
+  },
+
+  upgradePlan: async (planId: string): Promise<void> => {
+    await delay(1000);
+    // Would integrate with Stripe in production
+  },
+
+  createScheduledReport: async (reportConfig: Omit<ReportConfig, 'id'>): Promise<ReportConfig> => {
+    await delay(800);
+    return { 
+      id: `report-${Math.random().toString(36).substring(2, 9)}`, 
+      ...reportConfig 
+    };
+  },
+
   getCurrentUser: async (): Promise<UserData | null> => {
     try {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -393,4 +541,32 @@ export const apiService = {
       throw error;
     }
   },
+
+  // New methods for enhanced functionality
+  exportLinks: async (format: 'csv' | 'pdf'): Promise<string> => {
+    await delay(1000);
+    // Would generate and return file URL in production
+    return `https://example.com/exports/links.${format}`;
+  },
+
+  generateReport: async (type: string): Promise<string> => {
+    await delay(1500);
+    // Would generate and return report URL in production
+    return `https://example.com/reports/report-${Date.now()}.pdf`;
+  },
+
+  trackPageSpeed: async (url: string): Promise<any> => {
+    await delay(1000);
+    // Would call Google PageSpeed Insights API in production
+    return {
+      performanceScore: Math.round(Math.random() * 100),
+      metrics: {
+        firstContentfulPaint: (Math.random() * 2 + 0.5).toFixed(1) + 's',
+        largestContentfulPaint: (Math.random() * 3 + 1).toFixed(1) + 's',
+        timeToInteractive: (Math.random() * 4 + 2).toFixed(1) + 's',
+        totalBlockingTime: (Math.random() * 0.5).toFixed(1) + 's',
+        cumulativeLayoutShift: (Math.random() * 0.1).toFixed(2)
+      }
+    };
+  }
 };
