@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface LinkData {
@@ -65,7 +64,7 @@ export interface UserData {
   name: string;
   email: string;
   plan: 'free' | 'pro' | 'enterprise';
-  // Add any other user fields here
+  avatar: string | null;
 }
 
 export interface SubscriptionPlan {
@@ -89,7 +88,6 @@ export interface ReportConfig {
   recipients: string[];
 }
 
-// Mock database - use this as fallback when not connected to Supabase
 const mockDb = {
   users: [
     {
@@ -97,6 +95,7 @@ const mockDb = {
       name: 'Demo User',
       email: 'demo@example.com',
       plan: 'pro' as const,
+      avatar: null
     }
   ],
   links: [
@@ -158,11 +157,9 @@ const mockDb = {
   ]
 };
 
-// Function to simulate delay
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const apiService = {
-  // Fetch links from Supabase or fallback to mock data
   getLinks: async (): Promise<LinkData[]> => {
     try {
       const { data, error } = await supabase
@@ -186,7 +183,6 @@ export const apiService = {
       console.error('Error fetching links:', error);
     }
     
-    // Fallback to mock data if Supabase fails or returns no data
     return mockDb.links;
   },
 
@@ -211,13 +207,11 @@ export const apiService = {
       console.error('Error fetching notifications:', error);
     }
     
-    // Fallback to mock data
     return mockDb.notifications;
   },
 
   getDashboardStats: async (): Promise<DashboardStats> => {
     try {
-      // Get links to calculate stats
       const { data: links, error } = await supabase
         .from('links')
         .select('*');
@@ -228,7 +222,6 @@ export const apiService = {
         const healthyLinks = links.filter(link => link.status === 'healthy').length;
         const brokenLinks = links.filter(link => link.status === 'broken').length;
         
-        // Calculate average response time
         const responseTimes = links
           .filter(link => link.response_time && !isNaN(parseFloat(link.response_time)))
           .map(link => parseFloat(link.response_time));
@@ -237,7 +230,6 @@ export const apiService = {
           ? (responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length).toFixed(1) + 's'
           : '0.0s';
         
-        // Calculate health score
         const totalScore = links.length > 0 
           ? Math.round((healthyLinks / links.length) * 100) 
           : 0;
@@ -248,16 +240,15 @@ export const apiService = {
           brokenLinks,
           avgLoadTime: avgTime,
           healthScore: totalScore,
-          totalScans: links.length * 2,  // Mock value - would be actual scan count
+          totalScans: links.length * 2,
           responseTime: avgTime,
-          issuesFixed: brokenLinks > 0 ? Math.floor(brokenLinks / 2) : 0  // Mock value
+          issuesFixed: brokenLinks > 0 ? Math.floor(brokenLinks / 2) : 0
         };
       }
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
     }
     
-    // Fallback to mock data
     return {
       totalLinks: 150,
       healthyLinks: 120,
@@ -270,10 +261,8 @@ export const apiService = {
     };
   },
 
-  // Analyze a single link
   analyzeLink: async (url: string): Promise<LinkAnalysisResult> => {
     try {
-      // Call the edge function
       const { data, error } = await supabase.functions.invoke('analyze-link', {
         body: { url }
       });
@@ -284,8 +273,7 @@ export const apiService = {
     } catch (error) {
       console.error('Error invoking analyze-link function:', error);
       
-      // Fallback to mock data if the edge function fails
-      await delay(1500); // Simulate API delay
+      await delay(1500);
       
       const status = Math.random() > 0.2 ? 'healthy' : 'broken';
       
@@ -310,11 +298,9 @@ export const apiService = {
       };
     }
   },
-  
-  // Bulk analyze multiple links
+
   bulkAnalyzeLinks: async (urls: string[]): Promise<LinkAnalysisResult[]> => {
     try {
-      // Call the edge function
       const { data, error } = await supabase.functions.invoke('bulk-analyze', {
         body: { urls }
       });
@@ -325,10 +311,8 @@ export const apiService = {
     } catch (error) {
       console.error('Error invoking bulk-analyze function:', error);
       
-      // Fallback to mock data if the edge function fails
-      await delay(2000); // Simulate API delay
+      await delay(2000);
       
-      // Mock results - in production, this would call a backend
       return urls.map(url => ({
         url,
         status: Math.random() > 0.2 ? 'healthy' : 'broken' as 'healthy' | 'broken' | 'redirected',
@@ -353,7 +337,6 @@ export const apiService = {
 
   checkLink: async (id: string): Promise<void> => {
     try {
-      // Get the link first
       const { data: link, error: fetchError } = await supabase
         .from('links')
         .select('*')
@@ -366,12 +349,10 @@ export const apiService = {
         throw new Error('Link not found');
       }
       
-      // Simulate checking the link and update the status
       await delay(1000);
       const status = Math.random() > 0.2 ? 'healthy' : 'broken';
       const responseTime = (Math.random() * 2).toFixed(2);
       
-      // Update the link in database
       const { error: updateError } = await supabase
         .from('links')
         .update({
@@ -431,13 +412,11 @@ export const apiService = {
   },
 
   getInvoices: async (): Promise<InvoiceData[]> => {
-    // In production, this would fetch from a payment provider like Stripe
     await delay(500);
     return mockDb.invoices;
   },
-  
+
   updatePaymentMethod: async (): Promise<void> => {
-    // Mock implementation - would integrate with payment provider API
     await delay(1000);
   },
 
@@ -448,7 +427,6 @@ export const apiService = {
 
   upgradePlan: async (planId: string): Promise<void> => {
     await delay(1000);
-    // Would integrate with Stripe in production
   },
 
   createScheduledReport: async (reportConfig: Omit<ReportConfig, 'id'>): Promise<ReportConfig> => {
@@ -467,7 +445,6 @@ export const apiService = {
         return null;
       }
       
-      // Get profile data
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
@@ -485,7 +462,8 @@ export const apiService = {
           ? `${profile.first_name} ${profile.last_name}`.trim() 
           : user.email?.split('@')[0] || 'User',
         email: user.email || '',
-        plan: (profile?.plan as 'free' | 'pro' | 'enterprise') || 'free'
+        plan: (profile?.plan as 'free' | 'pro' | 'enterprise') || 'free',
+        avatar: profile?.avatar || null
       };
     } catch (error) {
       console.error('Failed to get current user:', error);
@@ -511,7 +489,6 @@ export const apiService = {
 
   register: async (name: string, email: string, password: string) => {
     try {
-      // Sign up the user
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -542,22 +519,18 @@ export const apiService = {
     }
   },
 
-  // New methods for enhanced functionality
   exportLinks: async (format: 'csv' | 'pdf'): Promise<string> => {
     await delay(1000);
-    // Would generate and return file URL in production
     return `https://example.com/exports/links.${format}`;
   },
 
   generateReport: async (type: string): Promise<string> => {
     await delay(1500);
-    // Would generate and return report URL in production
     return `https://example.com/reports/report-${Date.now()}.pdf`;
   },
 
   trackPageSpeed: async (url: string): Promise<any> => {
     await delay(1000);
-    // Would call Google PageSpeed Insights API in production
     return {
       performanceScore: Math.round(Math.random() * 100),
       metrics: {
