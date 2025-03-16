@@ -1,194 +1,219 @@
-import React, { useState } from 'react';
+
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiService } from '@/services/api';
-import { toast } from 'sonner';
-import { DashboardSidebar } from '@/components/layout/DashboardSidebar';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { DashboardHeader } from '@/components/layout/DashboardHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, AlertTriangle, CheckCircle2, Loader2, LinkIcon, BarChart3 } from 'lucide-react';
-import { LinkCheckForm } from '@/components/features/LinkCheckForm';
-import { LinkAnalyzer } from '@/components/features/LinkAnalyzer';
+import { Progress } from '@/components/ui/progress';
+import { Info, ArrowRight, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
+import { safeParse } from '@/utils/typeSafety';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('check');
-
+  
   // Fetch dashboard stats
   const { 
     data: stats, 
     isLoading: isLoadingStats,
-    isError: isStatsError,
-    refetch: refetchStats
   } = useQuery({
     queryKey: ['dashboardStats'],
     queryFn: apiService.getDashboardStats
   });
 
-  // Handle stats error
-  if (isStatsError) {
-    toast.error('Failed to load dashboard statistics');
-  }
+  // Fetch links to show recent activity
+  const { 
+    data: links,
+    isLoading: isLoadingLinks
+  } = useQuery({
+    queryKey: ['links'],
+    queryFn: apiService.getLinks
+  });
 
-  const handleAnalysisComplete = () => {
-    // Refetch stats when analysis is complete
-    refetchStats();
-    // Other actions after analysis is complete
-  };
+  const parsedStats = safeParse(stats, {});
+  const parsedLinks = safeParse(links, []);
+  const hasLinks = parsedLinks.length > 0;
 
   return (
-    <div className="grid lg:grid-cols-[280px_1fr] h-screen bg-background">
-      <div className="hidden lg:block">
-        <DashboardSidebar />
-      </div>
-      <div className="flex flex-col h-screen overflow-auto">
-        <DashboardHeader title="Dashboard" />
-        <main className="flex-1 p-4 md:p-6">
-          <div className="space-y-6">
-            {/* User Welcome */}
-            {user && (
-              <div className="bg-primary/5 p-4 rounded-xl">
-                <h2 className="text-xl font-semibold">Welcome back, {user.name}</h2>
-                <p className="text-muted-foreground mt-1">Here's an overview of your link monitoring</p>
+    <DashboardLayout>
+      <DashboardHeader 
+        title="Overview" 
+        description="A summary of your website's link health and performance"
+      />
+      
+      <div className="p-4 md:p-6 space-y-6">
+        {/* Overview Cards */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle className="text-sm font-medium">Total Links</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoadingStats ? (
+                <div className="h-4 w-20 bg-muted rounded animate-pulse"></div>
+              ) : (
+                <div className="text-2xl font-bold">{parsedLinks.length}</div>
+              )}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle className="text-sm font-medium">Healthy Links</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoadingStats ? (
+                <div className="h-4 w-20 bg-muted rounded animate-pulse"></div>
+              ) : (
+                <div className="text-2xl font-bold">
+                  {parsedLinks.filter(link => link.status === 'healthy').length}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle className="text-sm font-medium">Broken Links</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoadingStats ? (
+                <div className="h-4 w-20 bg-muted rounded animate-pulse"></div>
+              ) : (
+                <div className="text-2xl font-bold">
+                  {parsedLinks.filter(link => link.status === 'broken').length}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle className="text-sm font-medium">Avg. Load Time</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoadingStats ? (
+                <div className="h-4 w-20 bg-muted rounded animate-pulse"></div>
+              ) : (
+                <div className="text-2xl font-bold">
+                  {parsedStats.avgLoadTime || '0.0s'}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Health Score */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Website Health Score</CardTitle>
+            <CardDescription>Overall health of your monitored links</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {hasLinks ? (
+              <>
+                <div className="text-3xl font-bold mb-2">
+                  {parsedLinks.length > 0 
+                    ? Math.round((parsedLinks.filter(link => link.status === 'healthy').length / parsedLinks.length) * 100)
+                    : 0}%
+                </div>
+                <Progress 
+                  value={parsedLinks.length > 0 
+                    ? Math.round((parsedLinks.filter(link => link.status === 'healthy').length / parsedLinks.length) * 100)
+                    : 0} 
+                  className="h-2"
+                />
+                <div className="flex justify-between mt-1">
+                  <span className="text-xs text-muted-foreground">Critical</span>
+                  <span className="text-xs text-muted-foreground">Excellent</span>
+                </div>
+              </>
+            ) : (
+              <div className="flex items-start gap-3 py-4">
+                <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
+                  <Info className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-muted-foreground mb-4">
+                    Add links to monitor to start tracking your website's health score.
+                  </p>
+                  <Button 
+                    onClick={() => navigate('/links')}
+                    className="flex items-center gap-2"
+                    size="sm"
+                  >
+                    Add Your First Link
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             )}
-            
-            {/* Stats Cards */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card className="border-primary/10 rounded-xl shadow-sm">
-                <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                  <CardTitle className="text-sm font-medium">Total Links</CardTitle>
-                  <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-                    <LinkIcon className="h-4 w-4" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {isLoadingStats ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <div className="text-2xl font-bold">{stats?.totalLinks || 0}</div>
-                  )}
-                </CardContent>
-              </Card>
-              <Card className="border-primary/10 rounded-xl shadow-sm">
-                <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                  <CardTitle className="text-sm font-medium">Healthy Links</CardTitle>
-                  <div className="h-8 w-8 rounded-full bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 flex items-center justify-center">
-                    <CheckCircle2 className="h-4 w-4" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {isLoadingStats ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <div className="text-2xl font-bold">{stats?.healthyLinks || 0}</div>
-                  )}
-                </CardContent>
-              </Card>
-              <Card className="border-primary/10 rounded-xl shadow-sm">
-                <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                  <CardTitle className="text-sm font-medium">Broken Links</CardTitle>
-                  <div className="h-8 w-8 rounded-full bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300 flex items-center justify-center">
-                    <AlertTriangle className="h-4 w-4" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {isLoadingStats ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <div className="text-2xl font-bold">{stats?.brokenLinks || 0}</div>
-                  )}
-                </CardContent>
-              </Card>
-              <Card className="border-primary/10 rounded-xl shadow-sm">
-                <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                  <CardTitle className="text-sm font-medium">Response Time</CardTitle>
-                  <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-                      <circle cx="12" cy="12" r="10" />
-                      <polyline points="12 6 12 12 16 14" />
-                    </svg>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {isLoadingStats ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <div className="text-2xl font-bold">{stats?.avgLoadTime || '0.0s'}</div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+          </CardContent>
+        </Card>
 
-            {/* Health Score */}
-            {stats?.healthScore && (
-              <Card className="border-primary/10 rounded-xl shadow-sm">
-                <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                  <CardTitle className="text-sm font-medium">Website Health Score</CardTitle>
-                  <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-                    <BarChart3 className="h-4 w-4" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="relative w-full h-4 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                    <div 
-                      className={`absolute top-0 left-0 h-full rounded-full ${
-                        stats.healthScore > 80 ? 'bg-green-500' : 
-                        stats.healthScore > 50 ? 'bg-amber-500' : 'bg-red-500'
-                      }`}
-                      style={{ width: `${stats.healthScore}%` }}
-                    />
-                  </div>
-                  <div className="flex justify-between mt-1">
-                    <span className="text-xs text-muted-foreground">0%</span>
-                    <span className="text-xs font-medium">{stats.healthScore}%</span>
-                    <span className="text-xs text-muted-foreground">100%</span>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Link Check/Analysis Tools */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">Link Tools</h2>
-                <Button 
-                  size="sm" 
-                  className="rounded-xl flex items-center gap-1"
-                  onClick={() => navigate('/links')}
-                >
-                  View All Links
-                  <ArrowRight className="h-4 w-4 ml-1" />
-                </Button>
-              </div>
-
-              <Tabs 
-                value={activeTab} 
-                onValueChange={setActiveTab}
-                className="w-full"
+        {/* Recent Links */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Recent Links</CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/links')}
               >
-                <TabsList className="max-w-[400px] w-full mb-4 rounded-xl">
-                  <TabsTrigger value="check">Quick Check</TabsTrigger>
-                  <TabsTrigger value="analyze">Advanced Analysis</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="check" className="space-y-4">
-                  <LinkCheckForm onAnalysisComplete={handleAnalysisComplete} />
-                </TabsContent>
-                
-                <TabsContent value="analyze" className="space-y-4">
-                  <LinkAnalyzer onAnalysisComplete={handleAnalysisComplete} />
-                </TabsContent>
-              </Tabs>
+                View All
+                <ArrowRight className="h-4 w-4 ml-1" />
+              </Button>
             </div>
-          </div>
-        </main>
+          </CardHeader>
+          <CardContent>
+            {isLoadingLinks ? (
+              <div className="space-y-2">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="h-12 bg-muted rounded animate-pulse"></div>
+                ))}
+              </div>
+            ) : hasLinks ? (
+              <div className="space-y-2">
+                {parsedLinks.slice(0, 5).map((link, i) => (
+                  <div key={i} className="flex items-center justify-between p-2 border rounded-md">
+                    <div className="flex items-center gap-2 overflow-hidden">
+                      <ExternalLink className="h-4 w-4 flex-shrink-0" />
+                      <span className="text-sm truncate">{link.url}</span>
+                    </div>
+                    <span className={`text-xs px-2 py-1 rounded-full ${
+                      link.status === 'healthy' 
+                        ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' 
+                        : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
+                    }`}>
+                      {link.status === 'healthy' ? 'Healthy' : 'Broken'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex items-start gap-3 py-4">
+                <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
+                  <Info className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-muted-foreground mb-4">
+                    No links have been added yet. Start by adding your first link to monitor.
+                  </p>
+                  <Button 
+                    onClick={() => navigate('/links')}
+                    className="flex items-center gap-2"
+                    size="sm"
+                  >
+                    Add Your First Link
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 
