@@ -28,5 +28,6 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  // Required to satisfy TypeScript with children prop
   return <>{children}</>;
 };

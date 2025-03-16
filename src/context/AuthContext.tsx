@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { apiService, UserData } from '@/services/api';
+import { UserData } from '@/services/api';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -45,7 +45,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             const userData: UserData = {
               id: authUser.user.id,
               email: authUser.user.email || '',
-              name: profileData ? `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() : '',
+              name: profileData ? `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() : authUser.user.user_metadata.name || '',
               plan: (profileData && profileData.plan as 'free' | 'pro' | 'enterprise') || 'free',
               avatar: profileData?.avatar_url || null
             };
@@ -89,7 +89,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               const userData: UserData = {
                 id: authUser.id,
                 email: authUser.email || '',
-                name: profileData ? `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() : '',
+                name: profileData ? `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() : authUser.user_metadata.name || '',
                 plan: (profileData && profileData.plan as 'free' | 'pro' | 'enterprise') || 'free',
                 avatar: profileData?.avatar_url || null
               };
@@ -133,7 +133,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const userData: UserData = {
           id: authUser.id,
           email: authUser.email || '',
-          name: profileData ? `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() : '',
+          name: profileData ? `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() : authUser.user_metadata.name || '',
           plan: (profileData && profileData.plan as 'free' | 'pro' | 'enterprise') || 'free',
           avatar: profileData?.avatar_url || null
         };
@@ -201,7 +201,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(userData);
       }
       
-      toast.success('Registration successful');
+      toast.success('Registration successful. Please check your email to confirm your account.');
       navigate('/dashboard');
     } catch (error) {
       toast.error('Registration failed: ' + (error as Error).message);

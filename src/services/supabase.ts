@@ -1,13 +1,6 @@
-
-import { createClient } from '@supabase/supabase-js';
 import { toast } from 'sonner';
-
-// Initialize Supabase client
-// Note: In a production environment, these would come from environment variables
-const supabaseUrl = 'YOUR_SUPABASE_URL';
-const supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY';
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+import { supabase } from '@/integrations/supabase/client';
+import { type Database } from '@/integrations/supabase/types';
 
 export interface SupabaseUser {
   id: string;
@@ -33,6 +26,15 @@ export interface SupabaseInvoice {
   date: string;
   status: string;
   description: string;
+}
+
+interface ScheduledReport {
+  id: string;
+  name: string;
+  frequency: 'daily' | 'weekly' | 'monthly';
+  includeDetails: boolean;
+  recipients: string[];
+  created_at: string;
 }
 
 // Supabase service with methods to interact with the database
@@ -225,6 +227,37 @@ export const supabaseService = {
     // For now, we'll just simulate success
     console.log('Payment method updated:', paymentMethodId);
   },
+
+  // Mock scheduled report data
+  getScheduledReports: async (): Promise<ScheduledReport[]> => {
+    // Mock data - in a real implementation, this would fetch from a database
+    return [
+      {
+        id: '1',
+        name: 'Weekly Performance Report',
+        frequency: 'weekly',
+        includeDetails: true,
+        recipients: ['team@example.com', 'manager@example.com'],
+        created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        id: '2',
+        name: 'Monthly Executive Summary',
+        frequency: 'monthly',
+        includeDetails: true,
+        recipients: ['executive@example.com', 'ceo@example.com'],
+        created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        id: '3',
+        name: 'Daily Status Update',
+        frequency: 'daily',
+        includeDetails: false,
+        recipients: ['dev@example.com'],
+        created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+      },
+    ];
+  }
 };
 
 // Utility to convert Supabase types to our frontend types

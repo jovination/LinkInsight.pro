@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,8 +16,11 @@ import {
   CheckCircle,
   EyeIcon, 
   EyeOffIcon,
+  Loader2,
   XCircle 
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/context/AuthContext';
 
 export const SignupForm = () => {
   const [email, setEmail] = useState('');
@@ -28,6 +30,7 @@ export const SignupForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { register } = useAuth();
   
   // Password strength indicators
   const hasMinLength = password.length >= 8;
@@ -49,25 +52,14 @@ export const SignupForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // This is a demo implementation - you'd connect this to your auth provider in a real app
     setIsLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        title: "Account created successfully",
-        description: "Welcome to LinkChecker!",
-      });
-      
-      navigate('/dashboard');
+      await register(name, email, password);
+      // Success toast and redirect handled in the AuthContext
     } catch (error) {
-      toast({
-        title: "Signup failed",
-        description: "There was an error creating your account. Please try again.",
-        variant: "destructive",
-      });
+      console.error('Signup error:', error);
+      // Error toast is handled in the AuthContext
     } finally {
       setIsLoading(false);
     }
@@ -75,6 +67,26 @@ export const SignupForm = () => {
   
   const toggleShowPassword = () => {
     setShowPassword(!showPassword);
+  };
+  
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+      
+      if (error) throw error;
+    } catch (error) {
+      console.error('Google signin error:', error);
+      toast({
+        title: "Google sign-in failed",
+        description: (error as Error).message,
+        variant: "destructive",
+      });
+    }
   };
   
   const renderPasswordRequirement = (met: boolean, text: string) => (
@@ -176,7 +188,14 @@ export const SignupForm = () => {
             className="w-full bg-primary hover:bg-primary-600"
             disabled={isLoading}
           >
-            {isLoading ? "Creating account..." : "Create account"}
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating account...
+              </>
+            ) : (
+              "Create account"
+            )}
           </Button>
         </form>
         
@@ -190,7 +209,7 @@ export const SignupForm = () => {
         </div>
         
         <div className="grid grid-cols-1 gap-3">
-          <Button variant="outline" className="w-full">
+          <Button variant="outline" className="w-full" onClick={handleGoogleLogin}>
             <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
               <path
                 d="M12.0003 4.75C13.7703 4.75 15.3553 5.36002 16.6053 6.54998L20.0303 3.125C17.9502 1.19 15.2353 0 12.0003 0C7.31028 0 3.25527 2.69 1.28027 6.60998L5.27028 9.70498C6.21525 6.86002 8.87028 4.75 12.0003 4.75Z"
