@@ -143,6 +143,11 @@ export interface PerformanceMetrics {
   }[];
 }
 
+export interface ScheduledReport extends ReportConfig {
+  include_details: boolean;
+  created_at: string;
+}
+
 const mockDb = {
   users: [
     {
@@ -842,3 +847,4 @@ export const apiService = {
 };
 
 export const api = apiService;
+

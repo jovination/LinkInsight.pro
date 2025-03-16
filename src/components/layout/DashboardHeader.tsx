@@ -7,9 +7,22 @@ interface DashboardHeaderProps {
   description?: string;
   subtitle?: string; // For backward compatibility
   children?: React.ReactNode;
+  showSearch?: boolean;
+  showNewButton?: boolean;
+  newButtonText?: string;
+  onNewButtonClick?: () => void;
 }
 
-export const DashboardHeader = ({ title, description, subtitle, children }: DashboardHeaderProps) => {
+export const DashboardHeader = ({ 
+  title, 
+  description, 
+  subtitle, 
+  children,
+  showSearch,
+  showNewButton,
+  newButtonText,
+  onNewButtonClick
+}: DashboardHeaderProps) => {
   // Use description if provided, otherwise use subtitle for backward compatibility
   const headerDescription = description || subtitle || '';
 

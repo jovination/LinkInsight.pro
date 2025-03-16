@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiService } from '@/services/api';
@@ -23,7 +22,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { safeParse } from '@/utils/typeSafety';
+import { typeSafeArray } from '@/utils/typeSafety';
 
 const DashboardIndex = () => {
   const navigate = useNavigate();
@@ -42,7 +41,7 @@ const DashboardIndex = () => {
   });
 
   // Parse links data safely
-  const parsedLinks = safeParse(links, []);
+  const parsedLinks = typeSafeArray(links);
   const hasLinks = parsedLinks.length > 0;
 
   return (

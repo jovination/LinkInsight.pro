@@ -9,7 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { useMutation } from '@tanstack/react-query';
-import { apiService, SeoReport, PerformanceMetrics } from '@/services/api';
+import { apiService } from '@/services/api';
 import { toast } from 'sonner';
 import { typeSafeArray, typeSafeNumber, typeSafeString } from '@/utils/typeSafety';
 import { 
@@ -27,6 +27,35 @@ import {
   FileText,
   Image
 } from 'lucide-react';
+
+// Define interfaces for better type safety
+interface SeoIssue {
+  type: string;
+  description: string;
+  impact: string;
+  location?: string;
+}
+
+interface SeoReport {
+  score: number;
+  issues: SeoIssue[];
+  recommendations: string[];
+}
+
+interface PerformanceMetrics {
+  pageSpeed: number;
+  firstContentfulPaint: string;
+  largestContentfulPaint: string;
+  timeToInteractive: string;
+  cumulativeLayoutShift: string;
+  history?: any;
+}
+
+interface Backlink {
+  source: string;
+  anchor: string;
+  date: string;
+}
 
 const SeoAnalyzer = () => {
   const [url, setUrl] = useState('');
@@ -203,26 +232,26 @@ const SeoAnalyzer = () => {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg">Issues Found</CardTitle>
                   <CardDescription>
-                    {typeSafeArray(seoMutation.data?.issues).length} issues detected
+                    {typeSafeArray<SeoIssue>(seoMutation.data?.issues).length} issues detected
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {typeSafeArray(seoMutation.data?.issues).map((issue, index) => (
+                    {typeSafeArray<SeoIssue>(seoMutation.data?.issues).map((issue, index) => (
                       <Alert key={index} variant="default" className="border-l-4 border-l-primary">
                         <div className="flex items-center gap-2">
-                          {getIssueIcon(issue.type)}
+                          {getIssueIcon(typeSafeString(issue.type))}
                           <AlertTitle className="text-sm font-medium">
-                            {issue.description}
+                            {typeSafeString(issue.description)}
                           </AlertTitle>
                         </div>
                         <AlertDescription className="mt-2 flex flex-wrap gap-2 text-sm text-muted-foreground">
                           <div className="flex items-center gap-2 mt-1 w-full">
-                            {getIssueBadge(issue.type)}
-                            {getImpactBadge(issue.impact)}
+                            {getIssueBadge(typeSafeString(issue.type))}
+                            {getImpactBadge(typeSafeString(issue.impact))}
                             {issue.location && (
                               <span className="text-xs bg-muted px-2 py-1 rounded-md">
-                                Location: {issue.location}
+                                Location: {typeSafeString(issue.location)}
                               </span>
                             )}
                           </div>
@@ -239,7 +268,7 @@ const SeoAnalyzer = () => {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {typeSafeArray(seoMutation.data?.recommendations).map((recommendation, index) => (
+                    {typeSafeArray<string>(seoMutation.data?.recommendations).map((recommendation, index) => (
                       <li key={index} className="flex items-start gap-2 text-sm">
                         <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                         <span>{recommendation}</span>
@@ -398,29 +427,29 @@ const SeoAnalyzer = () => {
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg">Backlink Analysis</CardTitle>
                 <CardDescription>
-                  Found {typeSafeArray(backlinkssMutation.data).length} backlinks pointing to your site
+                  Found {typeSafeArray<Backlink>(backlinkssMutation.data).length} backlinks pointing to your site
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="divide-y">
-                  {typeSafeArray(backlinkssMutation.data).map((backlink, index) => (
+                  {typeSafeArray<Backlink>(backlinkssMutation.data).map((backlink, index) => (
                     <div key={index} className="py-3 flex flex-col md:flex-row md:items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
                         <Link2 className="h-4 w-4 text-primary" />
                         <a 
-                          href={backlink.source} 
+                          href={typeSafeString(backlink.source)} 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="text-sm font-medium hover:underline"
                         >
-                          {backlink.source}
+                          {typeSafeString(backlink.source)}
                         </a>
                       </div>
                       <div className="flex items-center gap-3 text-sm text-muted-foreground">
                         <span className="bg-muted px-2 py-1 rounded text-xs">
-                          {backlink.anchor}
+                          {typeSafeString(backlink.anchor)}
                         </span>
-                        <span className="text-xs">{backlink.date}</span>
+                        <span className="text-xs">{typeSafeString(backlink.date)}</span>
                       </div>
                     </div>
                   ))}

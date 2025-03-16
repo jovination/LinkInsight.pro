@@ -70,3 +70,16 @@ export function typeSafeBoolean(data: unknown, defaultValue: boolean = false): b
   if (data === 'false') return false;
   return defaultValue;
 }
+
+/**
+ * A helper utility to safely parse an object from unknown data
+ * @param data The data of unknown type
+ * @param defaultValue The default value to return if data is not an object
+ * @returns The data cast to type T, or the default value
+ */
+export function safeParse<T>(data: unknown, defaultValue: T): T {
+  if (data !== null && data !== undefined) {
+    return data as T;
+  }
+  return defaultValue;
+}

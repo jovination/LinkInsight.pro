@@ -1,30 +1,46 @@
-
 import React, { useState } from 'react';
-import { DashboardSidebar } from '@/components/layout/DashboardSidebar';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiService } from '@/services/api';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { DashboardHeader } from '@/components/layout/DashboardHeader';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  LinkIcon, 
-  AlertTriangle, 
-  CheckCircle2, 
-  Clock, 
-  ExternalLink, 
-  Filter,
-  Search,
-  Plus,
-  Trash2
-} from 'lucide-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiService, LinkData } from '@/services/api';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { toast } from 'sonner';
+import { ExternalLink, CheckCircle2, AlertTriangle, Link2, PlusCircle, Search, Trash2, MoreHorizontal, RefreshCw } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { typeSafeArray } from '@/utils/typeSafety';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const LinksPage = () => {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
-  
-  // Get links data from API
+  const [addLinkOpen, setAddLinkOpen] = useState(false);
+
   const { 
     data: links = [], 
     isLoading,
@@ -33,7 +49,6 @@ const LinksPage = () => {
   } = useQuery({
     queryKey: ['links'],
     queryFn: apiService.getLinks,
-    // Mock data for development until backend is ready
     placeholderData: [
       { id: '1', url: 'https://example.com/homepage', status: 'healthy', responseTime: '0.8s', lastChecked: '2 hours ago' },
       { id: '2', url: 'https://example.com/about', status: 'healthy', responseTime: '1.2s', lastChecked: '2 hours ago' },
@@ -46,7 +61,6 @@ const LinksPage = () => {
     ]
   });
 
-  // Delete link mutation
   const deleteMutation = useMutation({
     mutationFn: apiService.deleteLink,
     onSuccess: () => {
@@ -58,7 +72,6 @@ const LinksPage = () => {
     }
   });
 
-  // Check link mutation
   const checkLinkMutation = useMutation({
     mutationFn: apiService.checkLink,
     onSuccess: () => {
@@ -71,7 +84,6 @@ const LinksPage = () => {
   });
 
   const handleAddLink = () => {
-    // This would typically open a modal
     toast.info('Add link feature will be implemented soon');
   };
 
@@ -87,7 +99,6 @@ const LinksPage = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, this would filter links or call an API endpoint
     toast.info(`Searching for: ${searchTerm}`);
   };
 
@@ -96,18 +107,26 @@ const LinksPage = () => {
   );
 
   return (
-    <div className="grid lg:grid-cols-[280px_1fr] h-screen">
-      <div className="hidden lg:block">
-        <DashboardSidebar />
-      </div>
+    <DashboardLayout>
+      <DashboardHeader 
+        title="Links Management" 
+        description="Manage and monitor your website links"
+      >
+        <div className="flex items-center gap-2">
+          <Input
+            placeholder="Search links..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="max-w-[200px] mr-2 hidden md:flex"
+          />
+          <Button onClick={() => setAddLinkOpen(true)}>
+            <PlusCircle className="h-4 w-4 mr-2" />
+            Add Link
+          </Button>
+        </div>
+      </DashboardHeader>
+      
       <div className="flex flex-col h-screen overflow-auto">
-        <DashboardHeader 
-          title="My Links" 
-          showSearch={true}
-          showNewButton={true}
-          newButtonText="Add New Link"
-          onNewButtonClick={handleAddLink}
-        />
         <main className="flex-1 p-4 md:p-6">
           <div className="space-y-6">
             <form onSubmit={handleSearch} className="flex max-w-sm items-center space-x-2">
@@ -162,7 +181,7 @@ const LinksPage = () => {
                           )}
                           {link.status === 'redirected' && (
                             <span className="inline-flex items-center text-amber-500">
-                              <LinkIcon className="mr-1 h-4 w-4" /> Redirect
+                              <Link2 className="mr-1 h-4 w-4" /> Redirect
                             </span>
                           )}
                         </div>
@@ -207,7 +226,7 @@ const LinksPage = () => {
           </div>
         </main>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 

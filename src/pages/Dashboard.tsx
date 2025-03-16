@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Info, ArrowRight, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { safeParse } from '@/utils/typeSafety';
+import { safeParse, typeSafeArray } from '@/utils/typeSafety';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -33,7 +33,7 @@ const Dashboard = () => {
   });
 
   const parsedStats = safeParse(stats, {});
-  const parsedLinks = safeParse(links, []);
+  const parsedLinks = typeSafeArray(links);
   const hasLinks = parsedLinks.length > 0;
 
   return (
@@ -41,7 +41,8 @@ const Dashboard = () => {
       <DashboardHeader 
         title="Overview" 
         description="A summary of your website's link health and performance"
-      />
+      >
+      </DashboardHeader>
       
       <div className="p-4 md:p-6 space-y-6">
         {/* Overview Cards */}
