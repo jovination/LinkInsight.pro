@@ -15,7 +15,7 @@ const ReportsPage = () => {
       <div className="flex flex-col h-screen overflow-auto">
         <DashboardHeader 
           title="Reports" 
-          subtitle="Generate, schedule, and manage reports for your website links and SEO"
+          description="Generate, schedule, and manage reports for your website links and SEO"
         />
         <main className="flex-1 p-4 md:p-6">
           <Tabs defaultValue="generate" className="space-y-4">

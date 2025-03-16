@@ -1,622 +1,401 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { toast } from "sonner";
-import { 
-  ArrowRight, 
-  CheckCircle2, 
-  Copy, 
-  LinkIcon, 
-  Loader2, 
-  AlertTriangle, 
-  Search,
-  Globe,
-  Info,
-  Clock,
-  FileDown,
-  Trash,
-  Download,
-  BarChart
-} from 'lucide-react';
-import { useMutation } from '@tanstack/react-query';
-import { apiService, LinkAnalysisResult } from '@/services/api';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import { Loader2, Link as LinkIcon, Check, ExternalLink, AlertTriangle, Globe, BarChart, Cpu } from 'lucide-react';
+import { apiService, LinkAnalysisResult } from '@/services/api';
+import { useMutation } from '@tanstack/react-query';
 
-interface LinkAnalyzerProps {
-  onAnalysisComplete?: () => void;
-}
-
-export const LinkAnalyzer = ({ onAnalysisComplete }: LinkAnalyzerProps) => {
+const LinkAnalyzer = () => {
   const [url, setUrl] = useState('');
   const [bulkUrls, setBulkUrls] = useState('');
+  const [activeTab, setActiveTab] = useState('single');
   const [result, setResult] = useState<LinkAnalysisResult | null>(null);
   const [bulkResults, setBulkResults] = useState<LinkAnalysisResult[]>([]);
-  const [analyzeMode, setAnalyzeMode] = useState<'single' | 'bulk'>('single');
   
-  // Mutation for analyzing a single link
-  const analyzeMutation = useMutation({
+  // Single link analysis mutation
+  const singleAnalysisMutation = useMutation({
     mutationFn: apiService.analyzeLink,
     onSuccess: (data) => {
-      setResult(data);
-      toast.success("Link analysis complete!");
-      if (onAnalysisComplete) {
-        onAnalysisComplete();
-      }
+      setResult(data as LinkAnalysisResult);
+      toast.success('Link analysis completed');
     },
-    onError: (error: Error) => {
-      toast.error(`Analysis failed: ${error.message}`);
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to analyze link');
     }
   });
   
-  // Mutation for bulk analyzing links
-  const bulkAnalyzeMutation = useMutation({
+  // Bulk link analysis mutation
+  const bulkAnalysisMutation = useMutation({
     mutationFn: apiService.bulkAnalyzeLinks,
     onSuccess: (data) => {
-      setBulkResults(data);
-      toast.success(`Analyzed ${data.length} links successfully!`);
-      if (onAnalysisComplete) {
-        onAnalysisComplete();
-      }
+      setBulkResults(data as LinkAnalysisResult[]);
+      toast.success(`${(data as LinkAnalysisResult[]).length} links analyzed successfully`);
     },
-    onError: (error: Error) => {
-      toast.error(`Bulk analysis failed: ${error.message}`);
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to analyze links');
     }
   });
   
-  const handleAnalyze = (e: React.FormEvent) => {
+  // Handle single link analysis
+  const handleSingleAnalysis = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (analyzeMode === 'single') {
-      if (!url) return;
-      toast.loading("Analyzing link...");
-      analyzeMutation.mutate(url);
-    } else {
-      if (!bulkUrls) return;
-      const urls = bulkUrls.split('\n')
-        .map(url => url.trim())
-        .filter(url => url.length > 0);
-        
-      if (urls.length === 0) {
-        toast.error("Please enter at least one valid URL");
-        return;
+    if (!url.trim()) {
+      toast.error('Please enter a URL');
+      return;
+    }
+    
+    try {
+      new URL(url);
+    } catch (error) {
+      toast.error('Please enter a valid URL');
+      return;
+    }
+    
+    singleAnalysisMutation.mutate(url);
+  };
+  
+  // Handle bulk link analysis
+  const handleBulkAnalysis = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const urls = bulkUrls
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line !== '');
+    
+    if (urls.length === 0) {
+      toast.error('Please enter at least one URL');
+      return;
+    }
+    
+    // Validate URLs
+    const invalidUrls = urls.filter(url => {
+      try {
+        new URL(url);
+        return false;
+      } catch (error) {
+        return true;
       }
-      
-      toast.loading(`Analyzing ${urls.length} links...`);
-      bulkAnalyzeMutation.mutate(urls);
-    }
-  };
-
-  const handleCopy = () => {
-    let contentToCopy;
+    });
     
-    if (analyzeMode === 'single' && result) {
-      contentToCopy = JSON.stringify(result, null, 2);
-    } else if (analyzeMode === 'bulk' && bulkResults.length > 0) {
-      contentToCopy = JSON.stringify(bulkResults, null, 2);
-    } else {
+    if (invalidUrls.length > 0) {
+      toast.error(`Found ${invalidUrls.length} invalid URLs. Please check your input.`);
       return;
     }
     
-    navigator.clipboard.writeText(contentToCopy);
-    toast.success("Result copied to clipboard");
+    bulkAnalysisMutation.mutate(urls);
   };
-
-  const handleDownload = () => {
-    let contentToDownload;
-    let filename;
-    
-    if (analyzeMode === 'single' && result) {
-      contentToDownload = JSON.stringify(result, null, 2);
-      filename = `link-analysis-${new Date().getTime()}.json`;
-    } else if (analyzeMode === 'bulk' && bulkResults.length > 0) {
-      contentToDownload = JSON.stringify(bulkResults, null, 2);
-      filename = `bulk-link-analysis-${new Date().getTime()}.json`;
-    } else {
-      return;
-    }
-    
-    const blob = new Blob([contentToDownload], { type: 'application/json' });
-    const href = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = href;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(href);
-    
-    toast.success(`Downloaded results as ${filename}`);
-  };
-
-  const handleExport = (format: 'csv' | 'pdf') => {
-    toast.loading(`Exporting data as ${format.toUpperCase()}...`);
-    
-    apiService.exportLinks(format)
-      .then(url => {
-        toast.success(`Export complete!`);
-        // In a real app, this would redirect to download the file
-        // window.location.href = url;
-      })
-      .catch(error => {
-        toast.error(`Export failed: ${error.message}`);
-      });
-  };
-
-  const handleCheckAnother = () => {
-    if (analyzeMode === 'single') {
-      setUrl('');
-      setResult(null);
-    } else {
-      setBulkUrls('');
-      setBulkResults([]);
-    }
-  };
-
-  const getStatusBadge = (status: "healthy" | "broken" | "redirected") => {
+  
+  // Get badge variant based on status
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case 'healthy':
-        return <Badge className="bg-green-500">Healthy</Badge>;
+        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">Healthy</Badge>;
       case 'broken':
-        return <Badge className="bg-red-500">Broken</Badge>;
+        return <Badge variant="destructive">Broken</Badge>;
       case 'redirected':
-        return <Badge className="bg-amber-500">Redirected</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">Redirected</Badge>;
+      default:
+        return <Badge variant="outline">Unknown</Badge>;
     }
-  };
-
-  const renderSingleAnalysisForm = () => (
-    <form onSubmit={handleAnalyze} className="space-y-4">
-      <div className="relative">
-        <Input
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="Enter URL to analyze..."
-          className="pr-12 border-primary/10 rounded-xl"
-          disabled={analyzeMutation.isPending}
-        />
-        <Button 
-          type="submit"
-          size="icon"
-          disabled={analyzeMutation.isPending || !url}
-          className="absolute right-1 top-1 bg-primary hover:bg-primary/90 w-8 h-8 flex items-center justify-center rounded-lg"
-        >
-          {analyzeMutation.isPending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <ArrowRight className="h-4 w-4" />
-          )}
-        </Button>
-      </div>
-      <div className="text-xs text-muted-foreground">
-        Enter a complete URL including https:// or http://
-      </div>
-    </form>
-  );
-
-  const renderBulkAnalysisForm = () => (
-    <form onSubmit={handleAnalyze} className="space-y-4">
-      <Textarea
-        value={bulkUrls}
-        onChange={(e) => setBulkUrls(e.target.value)}
-        placeholder="Enter URLs to analyze (one per line)..."
-        className="min-h-[120px] border-primary/10 rounded-xl"
-        disabled={bulkAnalyzeMutation.isPending}
-      />
-      <div className="flex justify-between items-center">
-        <div className="text-xs text-muted-foreground">
-          Enter complete URLs (one per line) including https:// or http://
-        </div>
-        <Button 
-          type="submit"
-          size="sm"
-          disabled={bulkAnalyzeMutation.isPending || !bulkUrls}
-          className="bg-primary hover:bg-primary/90 rounded-lg flex items-center gap-2"
-        >
-          {bulkAnalyzeMutation.isPending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Search className="h-4 w-4" />
-          )}
-          Analyze URLs
-        </Button>
-      </div>
-    </form>
-  );
-
-  const renderSingleAnalysisResult = () => {
-    if (!result) return null;
-    
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Globe className="h-5 w-5 text-primary" />
-            <h3 className="text-lg font-medium">{result.url}</h3>
-          </div>
-          <div className="flex items-center gap-2">
-            {getStatusBadge(result.status)}
-            <div className="flex space-x-1">
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="h-8 w-8 rounded-lg border-primary/10"
-                onClick={handleCopy}
-                title="Copy results"
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="h-8 w-8 rounded-lg border-primary/10"
-                onClick={handleDownload}
-                title="Download results"
-              >
-                <FileDown className="h-4 w-4" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="h-8 w-8 rounded-lg border-primary/10"
-                onClick={() => handleExport('pdf')}
-                title="Export as PDF"
-              >
-                <Download className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-        
-        <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-3 rounded-xl">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="metadata">Metadata</TabsTrigger>
-            <TabsTrigger value="performance">Performance</TabsTrigger>
-            <TabsTrigger value="links">Links</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="overview" className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-primary/5 rounded-xl">
-                <div className="flex items-center gap-2 mb-2">
-                  <Info className="h-4 w-4 text-primary" />
-                  <span className="font-medium">Status</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {result.status === 'healthy' && <CheckCircle2 className="h-5 w-5 text-green-500" />}
-                  {result.status === 'broken' && <AlertTriangle className="h-5 w-5 text-red-500" />}
-                  {result.status === 'redirected' && <LinkIcon className="h-5 w-5 text-amber-500" />}
-                  <span>
-                    {result.statusCode} 
-                    {result.status === 'healthy' ? ' OK' : 
-                     result.status === 'broken' ? ' Not Found' : 
-                     ' Redirect'}
-                  </span>
-                </div>
-              </div>
-              <div className="p-4 bg-primary/5 rounded-xl">
-                <div className="flex items-center gap-2 mb-2">
-                  <Clock className="h-4 w-4 text-primary" />
-                  <span className="font-medium">Performance</span>
-                </div>
-                <div>
-                  {result.responseTime ? `Response time: ${result.responseTime}` : 'No response'}
-                </div>
-              </div>
-            </div>
-            
-            <Alert className={`
-              ${result.status === 'healthy' ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800' : 
-                result.status === 'broken' ? 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800' : 
-                'bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800'}
-            `}>
-              <AlertDescription>
-                {result.status === 'healthy' ? 
-                  'This link is working correctly.' : 
-                  result.status === 'broken' ? 
-                  'This link is broken and returns an error.' : 
-                  'This link redirects to another URL.'}
-              </AlertDescription>
-            </Alert>
-            
-            {result.title && (
-              <div>
-                <h4 className="text-sm font-medium mb-1">Page Title</h4>
-                <p className="text-sm text-muted-foreground">{result.title}</p>
-              </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="metadata" className="space-y-4">
-            {result.metadata ? (
-              <>
-                {result.metadata.description && (
-                  <div>
-                    <h4 className="text-sm font-medium mb-1">Description</h4>
-                    <p className="text-sm text-muted-foreground">{result.metadata.description}</p>
-                  </div>
-                )}
-                
-                {result.metadata.keywords && result.metadata.keywords.length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-medium mb-1">Keywords</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {result.metadata.keywords.map((keyword, index) => (
-                        <Badge key={index} variant="outline">{keyword}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </>
-            ) : (
-              <p className="text-sm text-muted-foreground">No metadata available for this URL.</p>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="performance" className="space-y-4">
-            {result.pageSpeed ? (
-              <>
-                <div className="mb-4">
-                  <h4 className="text-sm font-medium mb-2">Performance Score</h4>
-                  <div className="relative h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                    <div 
-                      className={`absolute top-0 left-0 h-full ${
-                        result.pageSpeed.score > 89 ? 'bg-green-500' : 
-                        result.pageSpeed.score > 49 ? 'bg-amber-500' : 'bg-red-500'
-                      }`}
-                      style={{ width: `${result.pageSpeed.score}%` }}
-                    />
-                  </div>
-                  <div className="flex justify-between mt-1">
-                    <span className="text-xs text-muted-foreground">Poor</span>
-                    <span className="text-xs font-medium">{result.pageSpeed.score}/100</span>
-                    <span className="text-xs text-muted-foreground">Excellent</span>
-                  </div>
-                </div>
-                
-                <div className="grid md:grid-cols-3 gap-3">
-                  <div className="p-3 bg-primary/5 rounded-lg">
-                    <h5 className="text-xs text-muted-foreground">First Contentful Paint</h5>
-                    <p className="text-lg font-semibold">{result.pageSpeed.firstContentfulPaint}</p>
-                  </div>
-                  <div className="p-3 bg-primary/5 rounded-lg">
-                    <h5 className="text-xs text-muted-foreground">Largest Contentful Paint</h5>
-                    <p className="text-lg font-semibold">{result.pageSpeed.largestContentfulPaint}</p>
-                  </div>
-                  <div className="p-3 bg-primary/5 rounded-lg">
-                    <h5 className="text-xs text-muted-foreground">Time to Interactive</h5>
-                    <p className="text-lg font-semibold">{result.pageSpeed.timeToInteractive}</p>
-                  </div>
-                </div>
-                
-                <div className="flex justify-end">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="text-xs border-primary/10"
-                    onClick={() => window.open(`https://pagespeed.web.dev/report?url=${encodeURIComponent(result.url)}`, '_blank')}
-                  >
-                    <BarChart className="h-3 w-3 mr-1" />
-                    Full PageSpeed Report
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <p className="text-sm text-muted-foreground">No performance data available for this URL.</p>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="links" className="space-y-4">
-            {(result.brokenLinks?.length || result.redirectLinks?.length) ? (
-              <>
-                {result.brokenLinks && result.brokenLinks.length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-medium mb-2">Broken Links Found ({result.brokenLinks.length})</h4>
-                    <div className="space-y-2">
-                      {result.brokenLinks.map((link, index) => (
-                        <div key={index} className="p-2 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg flex items-center gap-2">
-                          <AlertTriangle className="h-4 w-4 text-red-500" />
-                          <span className="text-sm truncate">{link}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {result.redirectLinks && result.redirectLinks.length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-medium mb-2">Redirected Links Found ({result.redirectLinks.length})</h4>
-                    <div className="space-y-2">
-                      {result.redirectLinks.map((link, index) => (
-                        <div key={index} className="p-2 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg flex items-center gap-2">
-                          <LinkIcon className="h-4 w-4 text-amber-500" />
-                          <span className="text-sm truncate">{link}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </>
-            ) : (
-              <p className="text-sm text-muted-foreground">No link issues detected on this page.</p>
-            )}
-          </TabsContent>
-        </Tabs>
-      </div>
-    );
-  };
-
-  const renderBulkAnalysisResults = () => {
-    if (!bulkResults.length) return null;
-    
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-medium">Analysis Results ({bulkResults.length} URLs)</h3>
-          <div className="flex items-center gap-2">
-            <div className="flex space-x-1">
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="h-8 w-8 rounded-lg border-primary/10"
-                onClick={handleCopy}
-                title="Copy results to clipboard"
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="h-8 w-8 rounded-lg border-primary/10"
-                onClick={handleDownload}
-                title="Download results as JSON"
-              >
-                <FileDown className="h-4 w-4" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="h-8 rounded-lg border-primary/10"
-                onClick={() => handleExport('csv')}
-                title="Export as CSV"
-              >
-                CSV
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="h-8 rounded-lg border-primary/10"
-                onClick={() => handleExport('pdf')}
-                title="Export as PDF"
-              >
-                PDF
-              </Button>
-            </div>
-          </div>
-        </div>
-        
-        <div className="space-y-4">
-          {bulkResults.map((result, index) => (
-            <Card key={index} className="border-primary/10 rounded-xl shadow-sm overflow-hidden">
-              <div className="flex items-center justify-between border-b border-primary/10 p-4">
-                <div className="flex items-center gap-2">
-                  <Globe className="h-5 w-5 text-primary" />
-                  <span className="font-medium truncate max-w-[300px]">{result.url}</span>
-                </div>
-                {getStatusBadge(result.status)}
-              </div>
-              <CardContent className="p-4 space-y-2">
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Status:</span>{' '}
-                    <span className="font-medium">
-                      {result.statusCode} 
-                      {result.status === 'healthy' ? ' OK' : 
-                       result.status === 'broken' ? ' Not Found' : 
-                       ' Redirect'}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Response time:</span>{' '}
-                    <span className="font-medium">{result.responseTime || 'N/A'}</span>
-                  </div>
-                </div>
-                {result.title && (
-                  <div className="text-sm">
-                    <span className="text-muted-foreground">Title:</span>{' '}
-                    <span>{result.title}</span>
-                  </div>
-                )}
-                {(result.brokenLinks?.length || 0) > 0 && (
-                  <div className="text-sm text-red-500">
-                    {result.brokenLinks?.length} broken links found
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-        
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <Card className="p-4 border-primary/10 rounded-xl shadow-sm">
-            <CardTitle className="text-xl font-bold text-green-500">
-              {bulkResults.filter(r => r.status === 'healthy').length}
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">Healthy</p>
-          </Card>
-          <Card className="p-4 border-primary/10 rounded-xl shadow-sm">
-            <CardTitle className="text-xl font-bold text-red-500">
-              {bulkResults.filter(r => r.status === 'broken').length}
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">Broken</p>
-          </Card>
-          <Card className="p-4 border-primary/10 rounded-xl shadow-sm">
-            <CardTitle className="text-xl font-bold text-amber-500">
-              {bulkResults.filter(r => r.status === 'redirected').length}
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">Redirected</p>
-          </Card>
-        </div>
-      </div>
-    );
   };
 
   return (
-    <div className="w-full">
-      <Card className="shadow-sm border border-primary/10 bg-background rounded-2xl overflow-hidden">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-xl">Advanced Link Analyzer</CardTitle>
-            <div className="flex items-center">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className={`rounded-l-lg ${analyzeMode === 'single' ? 'bg-primary/10' : ''}`} 
-                onClick={() => {
-                  setAnalyzeMode('single');
-                  setBulkResults([]);
-                }}
-              >
-                Single URL
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className={`rounded-r-lg ${analyzeMode === 'bulk' ? 'bg-primary/10' : ''}`}
-                onClick={() => {
-                  setAnalyzeMode('bulk');
-                  setResult(null);
-                }}
-              >
-                Bulk Check
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {analyzeMode === 'single' && !result && renderSingleAnalysisForm()}
-          {analyzeMode === 'bulk' && !bulkResults.length && renderBulkAnalysisForm()}
-          {analyzeMode === 'single' && renderSingleAnalysisResult()}
-          {analyzeMode === 'bulk' && renderBulkAnalysisResults()}
-        </CardContent>
+    <div className="space-y-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="single">Single URL</TabsTrigger>
+          <TabsTrigger value="bulk">Bulk Analysis</TabsTrigger>
+        </TabsList>
         
-        {((analyzeMode === 'single' && result) || (analyzeMode === 'bulk' && bulkResults.length > 0)) && (
-          <CardFooter className="border-t border-primary/10 bg-primary/5 px-6 py-4">
-            <Button 
-              onClick={handleCheckAnother}
-              variant="outline"
-              className="ml-auto rounded-xl border-primary/10"
-            >
-              Analyze Another {analyzeMode === 'single' ? 'URL' : 'Batch'}
-            </Button>
-          </CardFooter>
-        )}
-      </Card>
+        <TabsContent value="single" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Analyze Single URL</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSingleAnalysis} className="space-y-4">
+                <div className="flex space-x-2">
+                  <Input
+                    type="text"
+                    placeholder="https://example.com"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button 
+                    type="submit" 
+                    className="whitespace-nowrap"
+                    disabled={singleAnalysisMutation.isPending}
+                  >
+                    {singleAnalysisMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      <>Analyze URL</>
+                    )}
+                  </Button>
+                </div>
+              </form>
+              
+              {result && !singleAnalysisMutation.isPending && (
+                <div className="mt-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-medium">{result.title || result.url}</h3>
+                    {getStatusBadge(result.status)}
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="border rounded-lg p-3">
+                      <div className="text-sm text-muted-foreground mb-1">Status Code</div>
+                      <div className="font-medium">{result.statusCode || 'N/A'}</div>
+                    </div>
+                    <div className="border rounded-lg p-3">
+                      <div className="text-sm text-muted-foreground mb-1">Response Time</div>
+                      <div className="font-medium">{result.responseTime || 'N/A'}</div>
+                    </div>
+                  </div>
+                  
+                  {result.redirectUrl && (
+                    <div className="border rounded-lg p-3">
+                      <div className="text-sm text-muted-foreground mb-1">Redirects To</div>
+                      <div className="font-medium truncate">{result.redirectUrl}</div>
+                    </div>
+                  )}
+                  
+                  {result.errors && result.errors.length > 0 && (
+                    <div className="border border-red-200 bg-red-50 dark:bg-red-950 dark:border-red-900 rounded-lg p-3">
+                      <div className="text-sm font-medium text-red-800 dark:text-red-300 mb-1">Errors</div>
+                      <ul className="text-sm text-red-700 dark:text-red-400 space-y-1">
+                        {result.errors.map((error, index) => (
+                          <li key={index}>{error}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  <Separator />
+                  
+                  <div className="space-y-4">
+                    <h4 className="font-medium">SEO Analysis</h4>
+                    
+                    {result.seoScore !== undefined && (
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span>SEO Score</span>
+                          <span className="font-medium">{result.seoScore}/100</span>
+                        </div>
+                        <Progress value={result.seoScore} className="h-2" />
+                      </div>
+                    )}
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      {result.metadata?.headingStructure && (
+                        <div className="border rounded-lg p-3">
+                          <div className="text-sm text-muted-foreground mb-1">Heading Structure</div>
+                          <div className="grid grid-cols-3 gap-2 text-sm">
+                            <div>
+                              <span className="font-medium">H1:</span> {result.metadata.headingStructure.h1Count}
+                            </div>
+                            <div>
+                              <span className="font-medium">H2:</span> {result.metadata.headingStructure.h2Count}
+                            </div>
+                            <div>
+                              <span className="font-medium">H3:</span> {result.metadata.headingStructure.h3Count}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {result.wordCount !== undefined && (
+                        <div className="border rounded-lg p-3">
+                          <div className="text-sm text-muted-foreground mb-1">Word Count</div>
+                          <div className="font-medium">{result.wordCount}</div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {result.linkCount && (
+                      <div className="border rounded-lg p-3">
+                        <div className="text-sm text-muted-foreground mb-1">Links</div>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div>
+                            <span className="font-medium">Internal:</span> {result.linkCount.internal}
+                          </div>
+                          <div>
+                            <span className="font-medium">External:</span> {result.linkCount.external}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {result.imageTags && (
+                      <div className="border rounded-lg p-3">
+                        <div className="text-sm text-muted-foreground mb-1">Images</div>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div>
+                            <span className="font-medium">With Alt:</span> {result.imageTags.withAlt}
+                          </div>
+                          <div>
+                            <span className="font-medium">Without Alt:</span> {result.imageTags.withoutAlt}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {result.pageSpeed && (
+                    <>
+                      <Separator />
+                      
+                      <div className="space-y-4">
+                        <h4 className="font-medium">Performance</h4>
+                        
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span>Page Speed Score</span>
+                            <span className="font-medium">{result.pageSpeed.score}/100</span>
+                          </div>
+                          <Progress value={result.pageSpeed.score} className="h-2" />
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          {result.pageSpeed.firstContentfulPaint && (
+                            <div className="border rounded-lg p-3">
+                              <div className="text-sm text-muted-foreground mb-1">First Contentful Paint</div>
+                              <div className="font-medium">{result.pageSpeed.firstContentfulPaint}</div>
+                            </div>
+                          )}
+                          
+                          {result.pageSpeed.largestContentfulPaint && (
+                            <div className="border rounded-lg p-3">
+                              <div className="text-sm text-muted-foreground mb-1">Largest Contentful Paint</div>
+                              <div className="font-medium">{result.pageSpeed.largestContentfulPaint}</div>
+                            </div>
+                          )}
+                          
+                          {result.pageSpeed.timeToInteractive && (
+                            <div className="border rounded-lg p-3">
+                              <div className="text-sm text-muted-foreground mb-1">Time to Interactive</div>
+                              <div className="font-medium">{result.pageSpeed.timeToInteractive}</div>
+                            </div>
+                          )}
+                          
+                          {result.pageSpeed.cumulativeLayoutShift && (
+                            <div className="border rounded-lg p-3">
+                              <div className="text-sm text-muted-foreground mb-1">Cumulative Layout Shift</div>
+                              <div className="font-medium">{result.pageSpeed.cumulativeLayoutShift}</div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="bulk" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Bulk URL Analysis</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleBulkAnalysis} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="bulk-urls">Enter URLs (one per line)</Label>
+                  <Textarea
+                    id="bulk-urls"
+                    rows={5}
+                    placeholder="https://example.com&#10;https://example.com/about&#10;https://example.com/contact"
+                    value={bulkUrls}
+                    onChange={(e) => setBulkUrls(e.target.value)}
+                  />
+                </div>
+                <Button 
+                  type="submit" 
+                  className="w-full"
+                  disabled={bulkAnalysisMutation.isPending}
+                >
+                  {bulkAnalysisMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Analyzing {bulkUrls.split('\n').filter(line => line.trim() !== '').length} URLs...
+                    </>
+                  ) : (
+                    <>Analyze URLs</>
+                  )}
+                </Button>
+              </form>
+              
+              {bulkResults.length > 0 && !bulkAnalysisMutation.isPending && (
+                <div className="mt-6 space-y-4">
+                  <h3 className="text-lg font-medium">Results Summary</h3>
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div className="border rounded-lg p-3">
+                      <div className="text-2xl font-bold text-green-500">
+                        {bulkResults.filter(item => item.status === 'healthy').length}
+                      </div>
+                      <div className="text-sm text-muted-foreground">Healthy</div>
+                    </div>
+                    <div className="border rounded-lg p-3">
+                      <div className="text-2xl font-bold text-red-500">
+                        {bulkResults.filter(item => item.status === 'broken').length}
+                      </div>
+                      <div className="text-sm text-muted-foreground">Broken</div>
+                    </div>
+                    <div className="border rounded-lg p-3">
+                      <div className="text-2xl font-bold text-yellow-500">
+                        {bulkResults.filter(item => item.status === 'redirected').length}
+                      </div>
+                      <div className="text-sm text-muted-foreground">Redirected</div>
+                    </div>
+                  </div>
+                  
+                  <Separator className="my-4" />
+                  
+                  <div className="space-y-3">
+                    {bulkResults.map((result, index) => (
+                      <div key={index} className="border rounded-lg p-3 flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className="mr-3">
+                            {result.status === 'healthy' && <Check className="h-5 w-5 text-green-500" />}
+                            {result.status === 'broken' && <AlertTriangle className="h-5 w-5 text-red-500" />}
+                            {result.status === 'redirected' && <ExternalLink className="h-5 w-5 text-yellow-500" />}
+                          </div>
+                          <div>
+                            <div className="font-medium truncate max-w-xs">{result.url}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {result.statusCode && `Status: ${result.statusCode}`}
+                              {result.responseTime && ` • Response time: ${result.responseTime}`}
+                            </div>
+                          </div>
+                        </div>
+                        {getStatusBadge(result.status)}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
+
+export default LinkAnalyzer;

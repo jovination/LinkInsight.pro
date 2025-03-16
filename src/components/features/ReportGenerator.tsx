@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,11 +29,13 @@ const ReportGenerator = () => {
 
   // Generate report mutation
   const generateMutation = useMutation({
-    mutationFn: apiService.generateReport,
+    mutationFn: (reportType: string) => apiService.generateReport(reportType),
     onSuccess: (data) => {
       toast.success('Report generated successfully');
       // In a real app, you'd likely download the report or open it in a new tab
-      window.open(data, '_blank');
+      if (typeof data === 'string') {
+        window.open(data, '_blank');
+      }
       setLoading(false);
     },
     onError: (error: any) => {

@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { PlusCircle, Calendar, Clock, MailIcon, Trash2, RefreshCw, Users } from 'lucide-react';
 import { toast } from 'sonner';
-import { api } from '@/services/api';
+import { apiService } from '@/services/api';
 
 // Interface for scheduled reports
 interface ScheduledReport {
@@ -45,7 +45,7 @@ const ReportScheduler = () => {
   const fetchReports = async () => {
     try {
       setLoading(true);
-      const data = await api.getScheduledReports();
+      const data = await apiService.getScheduledReports();
       setReports(data);
     } catch (error) {
       console.error('Error fetching scheduled reports:', error);

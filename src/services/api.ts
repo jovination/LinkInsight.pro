@@ -214,7 +214,7 @@ const mockDb = {
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-export const api = {
+export const apiService = {
   getLinks: async (): Promise<LinkData[]> => {
     try {
       const { data, error } = await supabase
@@ -516,9 +516,7 @@ export const api = {
     };
   },
 
-  getScheduledReports: async (): Promise<ReportConfig[]> => {
-    // This is a temporary implementation until we have a reports table
-    // Replace with actual database call once the table is created
+  getScheduledReports: async (): Promise<ScheduledReport[]> => {
     return [
       {
         id: '1',
@@ -842,3 +840,5 @@ export const api = {
     }
   }
 };
+
+export const api = apiService;

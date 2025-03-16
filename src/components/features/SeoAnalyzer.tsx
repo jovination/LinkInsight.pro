@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { useMutation } from '@tanstack/react-query';
 import { apiService, SeoReport, PerformanceMetrics } from '@/services/api';
 import { toast } from 'sonner';
+import { typeSafeArray, typeSafeNumber, typeSafeString } from '@/utils/typeSafety';
 import { 
   SearchIcon, 
   AlertTriangle, 
@@ -31,28 +33,28 @@ const SeoAnalyzer = () => {
   const [activeTab, setActiveTab] = useState('seo');
   
   const seoMutation = useMutation({
-    mutationFn: apiService.generateSeoReport,
+    mutationFn: (url: string) => apiService.generateSeoReport(url),
     onError: (error: any) => {
       toast.error(error.message || 'Failed to generate SEO report');
     }
   });
 
   const performanceMutation = useMutation({
-    mutationFn: apiService.getPerformanceMetrics,
+    mutationFn: (url: string) => apiService.getPerformanceMetrics(url),
     onError: (error: any) => {
       toast.error(error.message || 'Failed to get performance metrics');
     }
   });
 
   const keywordMutation = useMutation({
-    mutationFn: apiService.getKeywordDensity,
+    mutationFn: (url: string) => apiService.getKeywordDensity(url),
     onError: (error: any) => {
       toast.error(error.message || 'Failed to analyze keyword density');
     }
   });
 
   const backlinkssMutation = useMutation({
-    mutationFn: apiService.getBacklinks,
+    mutationFn: (url: string) => apiService.getBacklinks(url),
     onError: (error: any) => {
       toast.error(error.message || 'Failed to fetch backlinks');
     }
@@ -181,7 +183,9 @@ const SeoAnalyzer = () => {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex items-center justify-between">
                     <span>SEO Score</span>
-                    <span className={getScoreColor(seoMutation.data.score)}>{seoMutation.data.score}/100</span>
+                    <span className={getScoreColor(typeSafeNumber(seoMutation.data?.score, 0))}>
+                      {typeSafeNumber(seoMutation.data?.score, 0)}/100
+                    </span>
                   </CardTitle>
                   <CardDescription>
                     Analysis for {url}
@@ -189,8 +193,8 @@ const SeoAnalyzer = () => {
                 </CardHeader>
                 <CardContent>
                   <Progress 
-                    value={seoMutation.data.score} 
-                    className={`h-2 mt-2 ${getProgressColor(seoMutation.data.score)}`}
+                    value={typeSafeNumber(seoMutation.data?.score, 0)} 
+                    className={`h-2 mt-2 ${getProgressColor(typeSafeNumber(seoMutation.data?.score, 0))}`}
                   />
                 </CardContent>
               </Card>
@@ -199,13 +203,13 @@ const SeoAnalyzer = () => {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg">Issues Found</CardTitle>
                   <CardDescription>
-                    {seoMutation.data.issues.length} issues detected
+                    {typeSafeArray(seoMutation.data?.issues).length} issues detected
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {seoMutation.data.issues.map((issue, index) => (
-                      <Alert key={index} className="border-l-4 border-l-primary">
+                    {typeSafeArray(seoMutation.data?.issues).map((issue, index) => (
+                      <Alert key={index} variant="default" className="border-l-4 border-l-primary">
                         <div className="flex items-center gap-2">
                           {getIssueIcon(issue.type)}
                           <AlertTitle className="text-sm font-medium">
@@ -235,7 +239,7 @@ const SeoAnalyzer = () => {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {seoMutation.data.recommendations.map((recommendation, index) => (
+                    {typeSafeArray(seoMutation.data?.recommendations).map((recommendation, index) => (
                       <li key={index} className="flex items-start gap-2 text-sm">
                         <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                         <span>{recommendation}</span>
@@ -266,8 +270,8 @@ const SeoAnalyzer = () => {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex items-center justify-between">
                     <span>Performance Score</span>
-                    <span className={getScoreColor(performanceMutation.data.pageSpeed)}>
-                      {performanceMutation.data.pageSpeed}/100
+                    <span className={getScoreColor(typeSafeNumber(performanceMutation.data?.pageSpeed, 0))}>
+                      {typeSafeNumber(performanceMutation.data?.pageSpeed, 0)}/100
                     </span>
                   </CardTitle>
                   <CardDescription>
@@ -276,8 +280,8 @@ const SeoAnalyzer = () => {
                 </CardHeader>
                 <CardContent>
                   <Progress 
-                    value={performanceMutation.data.pageSpeed}
-                    className={`h-2 mt-2 ${getProgressColor(performanceMutation.data.pageSpeed)}`}
+                    value={typeSafeNumber(performanceMutation.data?.pageSpeed, 0)}
+                    className={`h-2 mt-2 ${getProgressColor(typeSafeNumber(performanceMutation.data?.pageSpeed, 0))}`}
                   />
                 </CardContent>
               </Card>
@@ -292,35 +296,35 @@ const SeoAnalyzer = () => {
                       <Clock className="h-6 w-6 mr-3 text-primary" />
                       <div>
                         <p className="text-sm font-medium">First Contentful Paint</p>
-                        <p className="text-xl font-bold">{performanceMutation.data.firstContentfulPaint}</p>
+                        <p className="text-xl font-bold">{typeSafeString(performanceMutation.data?.firstContentfulPaint, 'N/A')}</p>
                       </div>
                     </div>
                     <div className="flex items-center p-3 border rounded-lg">
                       <Zap className="h-6 w-6 mr-3 text-primary" />
                       <div>
                         <p className="text-sm font-medium">Largest Contentful Paint</p>
-                        <p className="text-xl font-bold">{performanceMutation.data.largestContentfulPaint}</p>
+                        <p className="text-xl font-bold">{typeSafeString(performanceMutation.data?.largestContentfulPaint, 'N/A')}</p>
                       </div>
                     </div>
                     <div className="flex items-center p-3 border rounded-lg">
                       <Server className="h-6 w-6 mr-3 text-primary" />
                       <div>
                         <p className="text-sm font-medium">Time to Interactive</p>
-                        <p className="text-xl font-bold">{performanceMutation.data.timeToInteractive}</p>
+                        <p className="text-xl font-bold">{typeSafeString(performanceMutation.data?.timeToInteractive, 'N/A')}</p>
                       </div>
                     </div>
                     <div className="flex items-center p-3 border rounded-lg">
                       <LineChart className="h-6 w-6 mr-3 text-primary" />
                       <div>
                         <p className="text-sm font-medium">Cumulative Layout Shift</p>
-                        <p className="text-xl font-bold">{performanceMutation.data.cumulativeLayoutShift}</p>
+                        <p className="text-xl font-bold">{typeSafeString(performanceMutation.data?.cumulativeLayoutShift, 'N/A')}</p>
                       </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              {performanceMutation.data.history && (
+              {performanceMutation.data?.history && (
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg">Performance History</CardTitle>
@@ -363,7 +367,7 @@ const SeoAnalyzer = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {Object.entries(keywordMutation.data).map(([keyword, density], index) => (
+                  {Object.entries(keywordMutation.data || {}).map(([keyword, density], index) => (
                     <div 
                       key={index} 
                       className="flex items-center justify-between p-3 border rounded-lg"
@@ -394,12 +398,12 @@ const SeoAnalyzer = () => {
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg">Backlink Analysis</CardTitle>
                 <CardDescription>
-                  Found {backlinkssMutation.data.length} backlinks pointing to your site
+                  Found {typeSafeArray(backlinkssMutation.data).length} backlinks pointing to your site
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="divide-y">
-                  {backlinkssMutation.data.map((backlink, index) => (
+                  {typeSafeArray(backlinkssMutation.data).map((backlink, index) => (
                     <div key={index} className="py-3 flex flex-col md:flex-row md:items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
                         <Link2 className="h-4 w-4 text-primary" />
