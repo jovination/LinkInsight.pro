@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { toast } from 'sonner';
-import { ExternalLink, CheckCircle2, AlertTriangle, Link2, PlusCircle, Search, Trash2, MoreHorizontal, RefreshCw } from 'lucide-react';
+import { ExternalLink, CheckCircle2, AlertTriangle, Link2, PlusCircle, Search, Trash2, MoreHorizontal, RefreshCw, ArrowRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { typeSafeArray } from '@/utils/typeSafety';
@@ -188,7 +188,7 @@ const LinksPage = () => {
                         <div className="flex items-center">
                           {link.status !== 'broken' ? (
                             <>
-                              <Clock className="mr-1 h-4 w-4 text-primary" />
+                              <ClockIcon className="mr-1 h-4 w-4 text-primary" />
                               {link.responseTime}
                             </>
                           ) : (

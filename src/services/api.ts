@@ -143,7 +143,7 @@ export interface PerformanceMetrics {
   }[];
 }
 
-export interface ScheduledReport extends ReportConfig {
+export interface ScheduledReport extends Omit<ReportConfig, 'includeDetails'> {
   include_details: boolean;
   created_at: string;
 }
@@ -847,4 +847,3 @@ export const apiService = {
 };
 
 export const api = apiService;
-

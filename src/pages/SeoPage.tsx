@@ -1,13 +1,22 @@
+
 import React from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { DashboardHeader } from '@/components/layout/DashboardHeader';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { SeoAnalyzer } from '@/components/features/SeoAnalyzer';
-import { SeoHighlightSection } from '@/components/features/SeoHighlightSection';
-import { Search } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import SeoAnalyzer from '@/components/features/SeoAnalyzer';
+import SeoHighlightSection from '@/components/features/SeoHighlightSection';
+import { 
+  Search, 
+  BarChart3, 
+  FileText, 
+  Activity, 
+  Link, 
+  Share2 
+} from 'lucide-react';
 
 const SeoPage = () => {
   const [searchTerm, setSearchTerm] = React.useState('');
@@ -40,7 +49,7 @@ const SeoPage = () => {
               <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
                 <CardTitle className="text-sm font-medium">Average SEO Score</CardTitle>
                 <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <BarChart className="h-4 w-4 text-primary" />
+                  <BarChart3 className="h-4 w-4 text-primary" />
                 </div>
               </CardHeader>
               <CardContent className="p-4 pt-2">

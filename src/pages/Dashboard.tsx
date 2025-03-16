@@ -9,7 +9,23 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Info, ArrowRight, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { safeParse, typeSafeArray } from '@/utils/typeSafety';
+import { typeSafeArray, typeSafeGet, safeParse } from '@/utils/typeSafety';
+
+interface DashboardStats {
+  totalLinks?: number;
+  healthyLinks?: number;
+  brokenLinks?: number;
+  avgLoadTime?: string;
+  healthScore?: number;
+}
+
+interface LinkData {
+  id: string;
+  url: string;
+  status: 'healthy' | 'broken' | 'redirected';
+  responseTime: string;
+  lastChecked: string;
+}
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -32,8 +48,8 @@ const Dashboard = () => {
     queryFn: apiService.getLinks
   });
 
-  const parsedStats = safeParse(stats, {});
-  const parsedLinks = typeSafeArray(links);
+  const parsedStats: DashboardStats = safeParse(stats, {});
+  const parsedLinks = typeSafeArray<LinkData>(links);
   const hasLinks = parsedLinks.length > 0;
 
   return (
@@ -41,8 +57,7 @@ const Dashboard = () => {
       <DashboardHeader 
         title="Overview" 
         description="A summary of your website's link health and performance"
-      >
-      </DashboardHeader>
+      />
       
       <div className="p-4 md:p-6 space-y-6">
         {/* Overview Cards */}
@@ -96,7 +111,7 @@ const Dashboard = () => {
                 <div className="h-4 w-20 bg-muted rounded animate-pulse"></div>
               ) : (
                 <div className="text-2xl font-bold">
-                  {parsedStats.avgLoadTime || '0.0s'}
+                  {typeSafeGet(parsedStats, 'avgLoadTime', '0.0s')}
                 </div>
               )}
             </CardContent>

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiService } from '@/services/api';
@@ -9,6 +10,7 @@ import { LinkCheckForm } from '@/components/features/LinkCheckForm';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { 
   ArrowRight, 
   AlertTriangle, 
@@ -22,7 +24,15 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { typeSafeArray } from '@/utils/typeSafety';
+import { typeSafeArray, typeSafeGet } from '@/utils/typeSafety';
+
+interface LinkData {
+  id: string;
+  url: string;
+  status: 'healthy' | 'broken' | 'redirected';
+  responseTime: string;
+  lastChecked: string;
+}
 
 const DashboardIndex = () => {
   const navigate = useNavigate();
@@ -41,7 +51,7 @@ const DashboardIndex = () => {
   });
 
   // Parse links data safely
-  const parsedLinks = typeSafeArray(links);
+  const parsedLinks = typeSafeArray<LinkData>(links);
   const hasLinks = parsedLinks.length > 0;
 
   return (
