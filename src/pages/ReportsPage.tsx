@@ -15,7 +15,7 @@ const ReportsPage = () => {
       <div className="flex flex-col h-screen overflow-auto">
         <DashboardHeader 
           title="Reports" 
-          description="Generate, schedule, and manage reports for your website links and SEO"
+          subtitle="Generate, schedule, and manage reports for your website links and SEO"
         />
         <main className="flex-1 p-4 md:p-6">
           <Tabs defaultValue="generate" className="space-y-4">
@@ -24,11 +24,11 @@ const ReportsPage = () => {
               <TabsTrigger value="schedule">Scheduled Reports</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="generate">
+            <TabsContent value="generate" className="space-y-4">
               <ReportGenerator />
             </TabsContent>
             
-            <TabsContent value="schedule">
+            <TabsContent value="schedule" className="space-y-4">
               <ReportScheduler />
             </TabsContent>
           </Tabs>

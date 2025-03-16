@@ -214,7 +214,7 @@ const mockDb = {
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-export const apiService = {
+export const api = {
   getLinks: async (): Promise<LinkData[]> => {
     try {
       const { data, error } = await supabase
@@ -517,28 +517,34 @@ export const apiService = {
   },
 
   getScheduledReports: async (): Promise<ReportConfig[]> => {
-    try {
-      await delay(600);
-      return [
-        {
-          id: 'report-1',
-          name: 'Weekly Link Health Check',
-          frequency: 'weekly',
-          includeDetails: true,
-          recipients: ['user@example.com']
-        },
-        {
-          id: 'report-2',
-          name: 'Monthly SEO Analysis',
-          frequency: 'monthly',
-          includeDetails: true,
-          recipients: ['user@example.com', 'team@example.com']
-        }
-      ];
-    } catch (error) {
-      console.error('Error getting scheduled reports:', error);
-      return [];
-    }
+    // This is a temporary implementation until we have a reports table
+    // Replace with actual database call once the table is created
+    return [
+      {
+        id: '1',
+        name: 'Weekly Link Health',
+        frequency: 'weekly',
+        include_details: true,
+        recipients: ['user@example.com'],
+        created_at: new Date().toISOString(),
+      },
+      {
+        id: '2',
+        name: 'Monthly SEO Report',
+        frequency: 'monthly',
+        include_details: true,
+        recipients: ['admin@example.com', 'team@example.com'],
+        created_at: new Date().toISOString(),
+      },
+      {
+        id: '3',
+        name: 'Daily Performance Check',
+        frequency: 'daily',
+        include_details: false,
+        recipients: ['alerts@example.com'],
+        created_at: new Date().toISOString(),
+      }
+    ];
   },
 
   getCurrentUser: async (): Promise<UserData | null> => {
@@ -619,6 +625,20 @@ export const apiService = {
       if (error) throw error;
     } catch (error) {
       console.error('Logout error:', error);
+      throw error;
+    }
+  },
+
+  exportBulkData: async (format: 'csv' | 'pdf', type: 'links' | 'seo' | 'performance') => {
+    try {
+      const { data, error } = await supabase.functions.invoke('bulk-export', {
+        body: { format, type }
+      });
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error exporting data:', error);
       throw error;
     }
   },

@@ -26,6 +26,7 @@ import {
   FileText,
   Zap
 } from 'lucide-react';
+import SeoHighlightSection from '@/components/features/SeoHighlightSection';
 
 const Index = () => {
   return (
@@ -77,6 +78,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+      
+      {/* SEO Highlight Section - New addition */}
+      <SeoHighlightSection />
       
       {/* Features Section */}
       <section className="py-24 px-4">

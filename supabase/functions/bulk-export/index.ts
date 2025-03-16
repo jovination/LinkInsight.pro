@@ -95,6 +95,9 @@ serve(async (req) => {
           format: format,
           created_at: new Date().toISOString(),
           file_url: mockUrl
+        }).catch(err => {
+          // Just log the error but don't fail the request
+          console.error('Error logging export:', err);
         });
       } catch (dbError) {
         console.error('Error logging export:', dbError);
@@ -103,7 +106,7 @@ serve(async (req) => {
     }
     
     return new Response(
-      JSON.stringify({ url: mockUrl }),
+      JSON.stringify({ url: mockUrl, success: true }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200 
@@ -113,7 +116,7 @@ serve(async (req) => {
     console.error('Error processing export:', error);
     
     return new Response(
-      JSON.stringify({ error: 'Failed to process export request' }),
+      JSON.stringify({ error: 'Failed to process export request', details: error.message }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500 
