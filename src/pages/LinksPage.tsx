@@ -35,6 +35,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Clock } from 'lucide-react';
 
 const LinksPage = () => {
   const queryClient = useQueryClient();
@@ -188,7 +189,7 @@ const LinksPage = () => {
                         <div className="flex items-center">
                           {link.status !== 'broken' ? (
                             <>
-                              <ClockIcon className="mr-1 h-4 w-4 text-primary" />
+                              <Clock className="h-4 w-4" />
                               {link.responseTime}
                             </>
                           ) : (
