@@ -16,11 +16,11 @@ export const Navbar = () => {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-background py-3 border-b border-border/40">
+    <header className="sticky top-0 z-40 w-full bg-background py-3 border-b border-border/40 md:px-4">
       <div className="container flex items-center justify-between">
         <div className="flex items-center gap-8">
           <Link to="/" className="flex items-center gap-2">
-            <span className="font-bold text-xl">Linklytics</span>
+            <span className="font-bold text-xl">LinkInsight</span>
           </Link>
           
           <nav className="hidden md:flex items-center gap-6">
@@ -70,7 +70,7 @@ export const Navbar = () => {
           <SheetContent side="right" className="flex flex-col">
             <div className="flex items-center justify-between border-b pb-4">
               <Link to="/" className="flex items-center gap-2">
-                <span className="font-bold text-xl">Linklytics</span>
+                <span className="font-bold text-xl">LinkInsight</span>
               </Link>
             </div>
             <nav className="flex flex-col gap-4 mt-8">

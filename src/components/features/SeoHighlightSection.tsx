@@ -7,9 +7,18 @@ import { Search, BarChart, Globe, ArrowUpRight, CheckCircle, Gauge } from 'lucid
 
 const SeoHighlightSection = () => {
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {/* SEO Score Card */}
-      <Card className="relative overflow-hidden">
+    <div className="container px-6 md:px-12 py-12 mx-auto">
+       <div className="text-center max-w-3xl mx-auto mb-20">
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">
+            Advanced SEO Analysis
+            </h2>
+            <p className="text-lg text-muted-foreground">
+            Comprehensive SEO tools to help you optimize your website and improve search rankings
+
+</p>
+          </div>
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 ">
+      <Card className="relative overflow-hidden rounded-3xl">
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -45,7 +54,7 @@ const SeoHighlightSection = () => {
       </Card>
 
       {/* Keyword Analysis Card */}
-      <Card className="relative overflow-hidden">
+      <Card className="relative overflow-hidden rounded-3xl">
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -80,9 +89,9 @@ const SeoHighlightSection = () => {
       </Card>
 
       {/* Backlink Profile Card */}
-      <Card className="relative overflow-hidden">
+      <Card className="relative overflow-hidden rounded-3xl">
         <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
               <Globe className="h-4 w-4 text-primary" />
               <span className="font-medium text-sm">Backlink Profile</span>
@@ -113,6 +122,7 @@ const SeoHighlightSection = () => {
           </div>
         </CardContent>
       </Card>
+    </div>
     </div>
   );
 };

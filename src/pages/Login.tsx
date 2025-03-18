@@ -33,14 +33,6 @@ const Login = () => {
         
         <LoginForm />
         
-        <div className="text-center mt-8">
-          <p className="text-sm text-muted-foreground">
-            Don't have an account yet?{" "}
-            <a href="/signup" className="text-primary hover:underline">
-              Sign up
-            </a>
-          </p>
-        </div>
       </div>
     </MainLayout>
   );
