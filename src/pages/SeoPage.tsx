@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { DashboardHeader } from '@/components/layout/DashboardHeader';
@@ -11,7 +10,7 @@ import SeoHighlightSection from '@/components/features/SeoHighlightSection';
 const SeoPage = () => {
   return (
     <DashboardLayout>
-      <>
+      <div>
         <DashboardHeader title="SEO Analysis" />
         
         <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
@@ -196,7 +195,7 @@ const SeoPage = () => {
         <div className="mt-6">
           <SeoHighlightSection />
         </div>
-      </>
+      </div>
     </DashboardLayout>
   );
 };

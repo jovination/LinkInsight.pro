@@ -7,48 +7,44 @@ interface LinkData {
   id: string;
   url: string;
   status: 'healthy' | 'broken' | 'redirected';
-  responseTime: string;
-  lastChecked: string;
+  response_time: string;
+  last_checked: string;
 }
 
 interface DashboardStatsProps {
-  links: unknown;
-  stats: unknown;
+  links: LinkData[];
   isLoadingStats: boolean;
   avgLoadTime: string;
 }
 
 const DashboardStats: React.FC<DashboardStatsProps> = ({
   links,
-  stats,
   isLoadingStats,
   avgLoadTime,
 }) => {
-  const parsedLinks = typeSafeArray<LinkData>(links);
-
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <>
       <DashboardOverviewCard
         title="Total Links"
         isLoading={isLoadingStats}
-        value={parsedLinks.length}
+        value={links.length}
       />
       <DashboardOverviewCard
         title="Healthy Links"
         isLoading={isLoadingStats}
-        value={parsedLinks.filter(link => link.status === 'healthy').length}
+        value={links.filter(link => link.status === 'healthy').length}
       />
       <DashboardOverviewCard
         title="Broken Links"
         isLoading={isLoadingStats}
-        value={parsedLinks.filter(link => link.status === 'broken').length}
+        value={links.filter(link => link.status === 'broken').length}
       />
       <DashboardOverviewCard
         title="Avg. Load Time"
         isLoading={isLoadingStats}
         value={avgLoadTime}
       />
-    </div>
+    </>
   );
 };
 

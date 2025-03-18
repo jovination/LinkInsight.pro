@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { DashboardHeader } from '@/components/layout/DashboardHeader';
@@ -82,7 +81,7 @@ const LinksPage = () => {
         last_checked: new Date().toISOString(),
       } as const;
       
-      setLinks([newLink, ...links]);
+      setLinks([newLink, ...links] as any);
       setNewLinkUrl('');
       setShowAddLinkSheet(false);
       
@@ -121,7 +120,7 @@ const LinksPage = () => {
         last_checked: new Date().toISOString(),
       }));
       
-      setLinks([...newLinks, ...links]);
+      setLinks([...newLinks, ...links] as any);
       setBulkUrls('');
       setShowAddLinkSheet(false);
       
@@ -146,7 +145,7 @@ const LinksPage = () => {
 
   return (
     <DashboardLayout>
-      <>
+      <div>
         <DashboardHeader 
           title="Links" 
           newButtonText="Add Link"
@@ -351,7 +350,7 @@ const LinksPage = () => {
             </div>
           </SheetContent>
         </Sheet>
-      </>
+      </div>
     </DashboardLayout>
   );
 };
