@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { DashboardHeader } from '@/components/layout/DashboardHeader';
@@ -7,7 +8,7 @@ import { Activity, FileText, Link, Share2, BarChart } from 'lucide-react';
 import SeoAnalyzer from '@/components/features/SeoAnalyzer';
 import SeoHighlightSection from '@/components/features/SeoHighlightSection';
 
-const SeoPage = () => {
+const SeoPage: React.FC = () => {
   return (
     <DashboardLayout>
       <div>

@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider } from "./context/AuthContext";
+import { UserRoleProvider } from "./components/UserRoleProvider";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
@@ -39,93 +40,95 @@ const App = () => (
       <TooltipProvider>
         <BrowserRouter>
           <AuthProvider>
-            <Toaster />
-            <Sonner />
-            <Routes>
-              {/* Public routes */}
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/pricing" element={<Pricing />} />
-              
-              {/* Protected Dashboard Routes */}
-              <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <DashboardIndex />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/overview" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/links" element={
-                <ProtectedRoute>
-                  <LinksPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/links" element={
-                <ProtectedRoute>
-                  <LinksPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/reports" element={
-                <ProtectedRoute>
-                  <ReportsPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/reports" element={
-                <ProtectedRoute>
-                  <ReportsPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/analytics" element={
-                <ProtectedRoute>
-                  <AnalyticsPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/analytics" element={
-                <ProtectedRoute>
-                  <AnalyticsPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/seo" element={
-                <ProtectedRoute>
-                  <SeoPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/seo" element={
-                <ProtectedRoute>
-                  <SeoPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/billing" element={
-                <ProtectedRoute>
-                  <BillingPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/notifications" element={
-                <ProtectedRoute>
-                  <NotificationsPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/settings" element={
-                <ProtectedRoute>
-                  <SettingsPage />
-                </ProtectedRoute>
-              } />
-              
-              {/* Dashboard Not Found - Catch all dashboard routes */}
-              <Route path="/dashboard/*" element={
-                <ProtectedRoute>
-                  <DashboardNotFound />
-                </ProtectedRoute>
-              } />
-              
-              {/* Main Not Found - Catch all other routes */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <UserRoleProvider>
+              <Toaster />
+              <Sonner />
+              <Routes>
+                {/* Public routes */}
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<SignUp />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/pricing" element={<Pricing />} />
+                
+                {/* Protected Dashboard Routes */}
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <DashboardIndex />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/overview" element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/links" element={
+                  <ProtectedRoute>
+                    <LinksPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/links" element={
+                  <ProtectedRoute>
+                    <LinksPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/reports" element={
+                  <ProtectedRoute>
+                    <ReportsPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/reports" element={
+                  <ProtectedRoute>
+                    <ReportsPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/analytics" element={
+                  <ProtectedRoute>
+                    <AnalyticsPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/analytics" element={
+                  <ProtectedRoute>
+                    <AnalyticsPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/seo" element={
+                  <ProtectedRoute>
+                    <SeoPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/seo" element={
+                  <ProtectedRoute>
+                    <SeoPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/billing" element={
+                  <ProtectedRoute>
+                    <BillingPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/notifications" element={
+                  <ProtectedRoute>
+                    <NotificationsPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/settings" element={
+                  <ProtectedRoute>
+                    <SettingsPage />
+                  </ProtectedRoute>
+                } />
+                
+                {/* Dashboard Not Found - Catch all dashboard routes */}
+                <Route path="/dashboard/*" element={
+                  <ProtectedRoute>
+                    <DashboardNotFound />
+                  </ProtectedRoute>
+                } />
+                
+                {/* Main Not Found - Catch all other routes */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </UserRoleProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

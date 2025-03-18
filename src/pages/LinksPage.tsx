@@ -1,355 +1,380 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { SupabaseLink } from '@/services/supabase';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { DashboardHeader } from '@/components/layout/DashboardHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Check, AlertTriangle, ArrowUpDown, ExternalLink, Clock, Search, Plus, MoreHorizontal } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Plus, Search, AlertCircle, Clock, ExternalLink, RefreshCcw, Trash2, MoreHorizontal } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
+import { LinkAnalyzer } from '@/components/features/LinkAnalyzer';
 
 const LinksPage = () => {
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  const [links, setLinks] = useState<Array<{
-    id: string;
-    url: string;
-    status: 'healthy' | 'broken' | 'redirected';
-    response_time: string;
-    last_checked: string;
-  }>>([
-    {
-      id: '1',
-      url: 'https://example.com',
-      status: 'healthy',
-      response_time: '0.8s',
-      last_checked: '2023-05-15T10:30:00Z',
-    },
-    {
-      id: '2',
-      url: 'https://broken-link.example.com',
-      status: 'broken',
-      response_time: '-',
-      last_checked: '2023-05-15T10:30:00Z',
-    },
-    {
-      id: '3',
-      url: 'http://old-domain.example.com',
-      status: 'redirected',
-      response_time: '1.2s',
-      last_checked: '2023-05-15T10:30:00Z',
-    },
-    {
-      id: '4',
-      url: 'https://blog.example.com/article',
-      status: 'healthy',
-      response_time: '0.5s',
-      last_checked: '2023-05-15T10:30:00Z',
-    },
-    {
-      id: '5',
-      url: 'https://api.example.com/endpoint',
-      status: 'broken',
-      response_time: '-',
-      last_checked: '2023-05-15T10:30:00Z',
-    },
-  ]);
-
-  const [showAddLinkSheet, setShowAddLinkSheet] = useState(false);
-  const [newLinkUrl, setNewLinkUrl] = useState('');
-  const [bulkUrls, setBulkUrls] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [newLinkUrl, setNewLinkUrl] = useState('');
+  const [isAddLinkOpen, setIsAddLinkOpen] = useState(false);
+  const [filteredLinks, setFilteredLinks] = useState<SupabaseLink[]>([]);
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof SupabaseLink;
+    direction: 'ascending' | 'descending';
+  } | null>(null);
 
+  // Fetch links with React Query
+  const {
+    data: links,
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
+    queryKey: ['links'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('links')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        toast.error(`Error fetching links: ${error.message}`);
+        throw error;
+      }
+      
+      return data as SupabaseLink[];
+    },
+  });
+
+  // Filter and sort links whenever dependencies change
+  useEffect(() => {
+    if (!links) return;
+    
+    // First filter by search query
+    let result = [...links];
+    
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(link => 
+        link.url.toLowerCase().includes(query) || 
+        link.status.toLowerCase().includes(query)
+      );
+    }
+    
+    // Then apply sorting if configured
+    if (sortConfig !== null) {
+      result.sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) {
+          return sortConfig.direction === 'ascending' ? -1 : 1;
+        }
+        if (a[sortConfig.key] > b[sortConfig.key]) {
+          return sortConfig.direction === 'ascending' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    
+    setFilteredLinks(result);
+  }, [links, searchQuery, sortConfig]);
+
+  // Handle sort request
+  const requestSort = (key: keyof SupabaseLink) => {
+    let direction: 'ascending' | 'descending' = 'ascending';
+    if (
+      sortConfig &&
+      sortConfig.key === key &&
+      sortConfig.direction === 'ascending'
+    ) {
+      direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  // Add new link handler
   const handleAddLink = async () => {
-    if (!newLinkUrl) return;
-    
-    setIsLoading(true);
-    
+    if (!newLinkUrl.trim()) {
+      toast.error("Please enter a URL");
+      return;
+    }
+
     try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const newLink = {
-        id: String(links.length + 1),
-        url: newLinkUrl,
-        status: Math.random() > 0.3 ? 'healthy' : Math.random() > 0.5 ? 'broken' : 'redirected',
-        response_time: Math.random() > 0.2 ? `${(Math.random() * 1.5).toFixed(1)}s` : '-',
-        last_checked: new Date().toISOString(),
-      } as const;
-      
-      setLinks([newLink, ...links] as any);
-      setNewLinkUrl('');
-      setShowAddLinkSheet(false);
-      
-      toast({
-        title: "Link added successfully",
-        description: "Your link has been added and analyzed.",
-      });
+      // Simple URL validation
+      new URL(newLinkUrl);
+
+      // Simulate a link analysis (in real app, call an actual API endpoint)
+      const { data, error } = await supabase
+        .from('links')
+        .insert([
+          { 
+            url: newLinkUrl,
+            status: Math.random() > 0.2 ? 'healthy' : Math.random() > 0.5 ? 'broken' : 'redirected', 
+            response_time: `${(Math.random() * 2 + 0.5).toFixed(1)}s`,
+            last_checked: new Date().toISOString(),
+          },
+        ])
+        .select();
+
+      if (error) throw error;
+
+      toast.success("Link added successfully");
+      setNewLinkUrl("");
+      setIsAddLinkOpen(false);
+      refetch();
     } catch (error) {
-      toast({
-        title: "Failed to add link",
-        description: "An error occurred while adding your link.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+      console.error("Error adding link:", error);
+      toast.error("Failed to add link. Please check the URL and try again.");
     }
   };
 
-  const handleAddBulkLinks = async () => {
-    if (!bulkUrls) return;
-    
-    setIsLoading(true);
-    
+  // Delete link handler
+  const handleDeleteLink = async (id: string) => {
     try {
-      // Split by newlines and filter empty lines
-      const urls = bulkUrls.split('\n').filter(url => url.trim());
-      
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const newLinks = urls.map((url, index) => ({
-        id: String(links.length + index + 1),
-        url: url.trim(),
-        status: Math.random() > 0.3 ? 'healthy' : Math.random() > 0.5 ? 'broken' : 'redirected',
-        response_time: Math.random() > 0.2 ? `${(Math.random() * 1.5).toFixed(1)}s` : '-',
-        last_checked: new Date().toISOString(),
-      }));
-      
-      setLinks([...newLinks, ...links] as any);
-      setBulkUrls('');
-      setShowAddLinkSheet(false);
-      
-      toast({
-        title: `${newLinks.length} links added successfully`,
-        description: "Your links have been added and analyzed.",
-      });
+      const { error } = await supabase
+        .from('links')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast.success("Link deleted successfully");
+      refetch();
     } catch (error) {
-      toast({
-        title: "Failed to add links",
-        description: "An error occurred while adding your links.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+      console.error("Error deleting link:", error);
+      toast.error("Failed to delete link");
     }
   };
-
-  const filteredLinks = links.filter(link => 
-    link.url.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   return (
     <DashboardLayout>
-      <div>
+      <div className="space-y-4">
         <DashboardHeader 
-          title="Links" 
-          newButtonText="Add Link"
-          onNewButtonClick={() => setShowAddLinkSheet(true)}
+          title="Link Management" 
+          description="Monitor, analyze and manage your website links"
         />
         
-        <div className="flex items-center space-x-2 mb-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search links..."
-              className="pl-8"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+        <Tabs defaultValue="links" className="space-y-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+            <TabsList>
+              <TabsTrigger value="links">My Links</TabsTrigger>
+              <TabsTrigger value="analyzer">Link Analyzer</TabsTrigger>
+            </TabsList>
+            
+            <div className="flex gap-2 w-full sm:w-auto">
+              <div className="relative w-full sm:w-auto">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search links..."
+                  className="pl-8 w-full sm:w-[250px]"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              
+              <Dialog open={isAddLinkOpen} onOpenChange={setIsAddLinkOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Link
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add New Link</DialogTitle>
+                    <DialogDescription>
+                      Enter the URL of the link you want to monitor
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                      <Input
+                        placeholder="https://example.com"
+                        value={newLinkUrl}
+                        onChange={(e) => setNewLinkUrl(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsAddLinkOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleAddLink}>Add Link</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
-        </div>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>All Links</CardTitle>
-            <CardDescription>
-              Monitor your links and their status
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {filteredLinks.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium">No links found</h3>
-                <p className="text-muted-foreground mt-2">
-                  {searchQuery ? "No links match your search query." : "You haven't added any links yet."}
-                </p>
-                {searchQuery ? (
-                  <Button 
-                    variant="outline" 
-                    className="mt-4"
-                    onClick={() => setSearchQuery('')}
-                  >
-                    Clear search
-                  </Button>
+          
+          <TabsContent value="links" className="space-y-4">
+            <Card>
+              <CardHeader className="px-6 py-4">
+                <CardTitle>Your Links</CardTitle>
+                <CardDescription>
+                  {filteredLinks.length} links found
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                {isLoading ? (
+                  <div className="flex justify-center items-center p-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                ) : isError ? (
+                  <div className="flex justify-center items-center p-8 text-destructive">
+                    Failed to load links. Please try again later.
+                  </div>
+                ) : filteredLinks.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center p-8 text-center">
+                    <p className="text-muted-foreground mb-4">
+                      {searchQuery ? "No links match your search" : "You haven't added any links yet"}
+                    </p>
+                    {!searchQuery && (
+                      <Button onClick={() => setIsAddLinkOpen(true)}>
+                        <Plus className="h-4 w-4 mr-1" />
+                        Add Your First Link
+                      </Button>
+                    )}
+                  </div>
                 ) : (
-                  <Button 
-                    variant="default" 
-                    className="mt-4"
-                    onClick={() => setShowAddLinkSheet(true)}
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add your first link
-                  </Button>
-                )}
-              </div>
-            ) : (
-              <div className="relative overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>URL</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Response Time</TableHead>
-                      <TableHead>Last Checked</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredLinks.map(link => (
-                      <TableRow key={link.id}>
-                        <TableCell className="font-medium truncate max-w-xs">
-                          <a href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center hover:underline">
-                            {link.url}
-                            <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
-                          </a>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={link.status === 'healthy' ? 'success' : 
-                                  link.status === 'broken' ? 'destructive' : 'warning'}
-                            className="capitalize"
-                          >
-                            {link.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <Clock className="mr-1.5 h-3.5 w-3.5 text-muted-foreground" />
-                            {link.response_time}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {new Date(link.last_checked).toLocaleString()}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => {
-                                toast({ title: "Refreshing link..." });
-                              }}>
-                                <RefreshCcw className="mr-2 h-4 w-4" />
-                                Refresh
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                className="text-destructive"
-                                onClick={() => {
-                                  setLinks(links.filter(l => l.id !== link.id));
-                                  toast({ title: "Link deleted" });
-                                }}
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead onClick={() => requestSort('url')} className="cursor-pointer">
+                            URL
+                            <ArrowUpDown className="ml-1 h-3 w-3 inline" />
+                          </TableHead>
+                          <TableHead onClick={() => requestSort('status')} className="cursor-pointer">
+                            Status
+                            <ArrowUpDown className="ml-1 h-3 w-3 inline" />
+                          </TableHead>
+                          <TableHead onClick={() => requestSort('response_time')} className="cursor-pointer">
+                            Response Time
+                            <ArrowUpDown className="ml-1 h-3 w-3 inline" />
+                          </TableHead>
+                          <TableHead onClick={() => requestSort('last_checked')} className="cursor-pointer">
+                            Last Checked
+                            <ArrowUpDown className="ml-1 h-3 w-3 inline" />
+                          </TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredLinks.map((link) => (
+                          <TableRow key={link.id}>
+                            <TableCell className="max-w-[200px] truncate font-medium">
+                              <a 
+                                href={link.url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="flex items-center hover:underline"
                               >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-          <CardFooter className="flex justify-between">
-            <div className="text-sm text-muted-foreground">
-              Showing {filteredLinks.length} of {links.length} links
-            </div>
-          </CardFooter>
-        </Card>
-        
-        <Sheet open={showAddLinkSheet} onOpenChange={setShowAddLinkSheet}>
-          <SheetContent className="sm:max-w-md">
-            <SheetHeader>
-              <SheetTitle>Add Links</SheetTitle>
-              <SheetDescription>
-                Add one or multiple links to monitor.
-              </SheetDescription>
-            </SheetHeader>
-            <div className="mt-6 space-y-6">
-              <Tabs defaultValue="single">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="single">Single Link</TabsTrigger>
-                  <TabsTrigger value="bulk">Bulk Upload</TabsTrigger>
-                </TabsList>
-                <TabsContent value="single" className="space-y-4 pt-4">
-                  <div className="space-y-2">
-                    <Input
-                      placeholder="https://example.com"
-                      value={newLinkUrl}
-                      onChange={(e) => setNewLinkUrl(e.target.value)}
-                    />
+                                {link.url}
+                                <ExternalLink className="ml-1 h-3 w-3 inline" />
+                              </a>
+                            </TableCell>
+                            <TableCell>
+                              <Badge 
+                                variant={
+                                  link.status === 'healthy' 
+                                    ? 'outline' 
+                                    : link.status === 'broken' 
+                                      ? 'destructive' 
+                                      : 'outline'
+                                }
+                                className={link.status === 'redirected' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' : ''}
+                              >
+                                {link.status === 'healthy' && (
+                                  <Check className="mr-1 h-3 w-3" />
+                                )}
+                                {link.status === 'broken' && (
+                                  <AlertTriangle className="mr-1 h-3 w-3" />
+                                )}
+                                {link.status === 'redirected' && (
+                                  <ExternalLink className="mr-1 h-3 w-3" />
+                                )}
+                                {link.status.charAt(0).toUpperCase() + link.status.slice(1)}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>{link.response_time}</TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              <div className="flex items-center text-muted-foreground">
+                                <Clock className="mr-1 h-3 w-3" />
+                                {new Date(link.last_checked).toLocaleString(undefined, {
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <span className="sr-only">Open menu</span>
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem onClick={() => window.open(link.url, '_blank')}>
+                                    Visit Link
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => refetch()}>
+                                    Recheck Status
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem 
+                                    className="text-destructive focus:text-destructive"
+                                    onClick={() => handleDeleteLink(link.id)}
+                                  >
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
-                  <Button 
-                    className="w-full" 
-                    onClick={handleAddLink}
-                    disabled={isLoading || !newLinkUrl}
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Adding...
-                      </>
-                    ) : (
-                      <>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Link
-                      </>
-                    )}
-                  </Button>
-                </TabsContent>
-                <TabsContent value="bulk" className="space-y-4 pt-4">
-                  <div className="space-y-2">
-                    <textarea
-                      className="w-full h-32 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                      placeholder="Enter one URL per line:&#10;https://example.com&#10;https://example.org"
-                      value={bulkUrls}
-                      onChange={(e) => setBulkUrls(e.target.value)}
-                    />
-                  </div>
-                  <Button 
-                    className="w-full" 
-                    onClick={handleAddBulkLinks}
-                    disabled={isLoading || !bulkUrls}
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Adding...
-                      </>
-                    ) : (
-                      <>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Links
-                      </>
-                    )}
-                  </Button>
-                </TabsContent>
-              </Tabs>
-            </div>
-          </SheetContent>
-        </Sheet>
+                )}
+              </CardContent>
+              <CardFooter className="px-6 py-4 flex items-center justify-between">
+                <Button variant="outline" onClick={() => refetch()}>
+                  Refresh
+                </Button>
+                <div className="text-sm text-muted-foreground">
+                  {filteredLinks.length} of {links?.length || 0} links shown
+                </div>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="analyzer" className="space-y-4">
+            <LinkAnalyzer />
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );
