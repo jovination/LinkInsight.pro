@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -30,7 +29,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { LinkAnalyzer } from '@/components/features/LinkAnalyzer';
+import LinkAnalyzer from '@/components/features/LinkAnalyzer';
 
 const LinksPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -42,7 +41,6 @@ const LinksPage = () => {
     direction: 'ascending' | 'descending';
   } | null>(null);
 
-  // Fetch links with React Query
   const {
     data: links,
     isLoading,
@@ -65,11 +63,9 @@ const LinksPage = () => {
     },
   });
 
-  // Filter and sort links whenever dependencies change
   useEffect(() => {
     if (!links) return;
     
-    // First filter by search query
     let result = [...links];
     
     if (searchQuery) {
@@ -80,7 +76,6 @@ const LinksPage = () => {
       );
     }
     
-    // Then apply sorting if configured
     if (sortConfig !== null) {
       result.sort((a, b) => {
         if (a[sortConfig.key] < b[sortConfig.key]) {
@@ -96,7 +91,6 @@ const LinksPage = () => {
     setFilteredLinks(result);
   }, [links, searchQuery, sortConfig]);
 
-  // Handle sort request
   const requestSort = (key: keyof SupabaseLink) => {
     let direction: 'ascending' | 'descending' = 'ascending';
     if (
@@ -109,7 +103,6 @@ const LinksPage = () => {
     setSortConfig({ key, direction });
   };
 
-  // Add new link handler
   const handleAddLink = async () => {
     if (!newLinkUrl.trim()) {
       toast.error("Please enter a URL");
@@ -117,10 +110,8 @@ const LinksPage = () => {
     }
 
     try {
-      // Simple URL validation
       new URL(newLinkUrl);
 
-      // Simulate a link analysis (in real app, call an actual API endpoint)
       const { data, error } = await supabase
         .from('links')
         .insert([
@@ -145,7 +136,6 @@ const LinksPage = () => {
     }
   };
 
-  // Delete link handler
   const handleDeleteLink = async (id: string) => {
     try {
       const { error } = await supabase

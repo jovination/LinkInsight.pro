@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -81,7 +80,7 @@ const SubscriptionManager = () => {
   const [selectedPlan, setSelectedPlan] = useState<typeof plans[0] | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleUpgrade = (plan: typeof plans[0]) => {
+  const handleUpgrade = async (plan: typeof plans[0]) => {
     if (plan.id === userRole) {
       toast.info(`You are already subscribed to the ${plan.name}`);
       return;
@@ -101,8 +100,8 @@ const SubscriptionManager = () => {
       // Simulate payment processing
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Update user role after successful payment
-      await updateUserRole(selectedPlan.id as 'free' | 'pro' | 'enterprise');
+      // Update user role with correct type
+      await updateUserRole(plan.id as 'free' | 'pro');
       
       toast.success(`Successfully upgraded to ${selectedPlan.name}!`);
       setIsPaymentDialogOpen(false);

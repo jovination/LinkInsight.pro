@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { DashboardHeader } from '@/components/layout/DashboardHeader';
@@ -10,7 +9,7 @@ import SeoHighlightSection from '@/components/features/SeoHighlightSection';
 
 const SeoPage: React.FC = () => {
   return (
-    <DashboardLayout>
+    <DashboardLayout className="container">
       <div>
         <DashboardHeader title="SEO Analysis" />
         

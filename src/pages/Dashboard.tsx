@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { DashboardHeader } from '@/components/layout/DashboardHeader';
@@ -41,7 +40,7 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout className="container">
       <div>
         <DashboardHeader title="Dashboard" />
         
